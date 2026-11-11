@@ -6,13 +6,103 @@
   --bg: #fffbf4;
   --surface: #ffffff;
   --text: #2b2520;
-  --muted: #8c8178;
+  --muted: #8c8178; /* only for borders and lines: too light for text (WCAG AA) */
+  --radius: 12px;
+  --font: system-ui, sans-serif;
 }
 
 html,
 body {
   margin: 0;
+  height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, sans-serif;
+  font-family: var(--font);
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+}
+
+.app-name {
+  font-weight: 600;
+}
+
+.tools {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.tool {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--muted);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tool[aria-pressed='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.score-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 16px;
+}
+
+#score {
+  width: 100%;
+  background: var(--surface);
+  border-radius: var(--radius);
+}
+
+#score svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Note names below the staff */
+#score .vf-note-names text {
+  font-family: var(--font);
+  text-anchor: middle;
+  fill: var(--text);
+}
+
+/* Measure check below each measure */
+.status-row {
+  position: relative;
+  min-height: 3.2em;
+  padding-bottom: 12px;
+}
+.status {
+  position: absolute;
+  top: 0;
+  box-sizing: border-box;
+  padding: 0 6px;
+  text-align: center;
+  line-height: 1.3;
+}
+.status.full {
+  color: var(--text);
+}
+.status.missing {
+  color: var(--accent-text);
 }
