@@ -1,0 +1,18 @@
+/* All colors in one place (see CLAUDE.md, "Gestaltung"). */
+:root {
+  --accent: #f2a93b;
+  --accent-soft: #fce7c3;
+  --accent-text: #8a4b00;
+  --bg: #fffbf4;
+  --surface: #ffffff;
+  --text: #2b2520;
+  --muted: #8c8178;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+}
