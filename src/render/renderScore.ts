@@ -1,25 +1,18 @@
-import {
-  BarlineType,
-  Beam,
-  Formatter,
-  Fraction,
-  Renderer,
-  Stave,
-  StaveNote,
-  Voice,
-} from 'vexflow/bravura';
+import { BarlineType, Beam, Formatter, Fraction, Renderer, Stave, StaveNote, Voice } from 'vexflow/bravura';
 import { describeStatus, measureStatus } from '../model/check';
-import { measureLength } from '../model/measure';
+import { measureLength, placeEvents } from '../model/measure';
 import { germanNoteName } from '../model/noteName';
-import type { Score, ScoreEvent, Staff } from '../model/types';
+import type { Position, Score, ScoreEvent, Staff } from '../model/types';
+import type { MeasureLayout, ScoreLayout } from './layout';
 
 /**
  * Draws the score as SVG. Contains no musical logic: everything it shows
- * (notes, rests, measure check) comes from the model.
+ * (notes, rests, measure check) comes from the model. Cursor, selection and
+ * preview are only drawn where the caller says.
  */
 
 // Size of the drawing in "logical" pixels. The SVG is then scaled to the screen width.
-const WIDTH = 720;
+export const WIDTH = 720;
 const HEIGHT = 160;
 const MARGIN = 10;
 const STAVE_Y = 30;
@@ -29,6 +22,10 @@ const DURATION_CODES: Record<number, string> = { 192: 'w', 96: 'h', 48: 'q', 24:
 
 export interface RenderOptions {
   showNoteNames: boolean;
+  cursor: Position | null;
+  selection: Position | null;
+  /** Position of a note that is only a preview (drawn half transparent). */
+  preview: Position | null;
 }
 
 function durationCode(ticks: number): string {
@@ -61,7 +58,10 @@ function headerWidth(clef: string, timeSignature: string): number {
   return withHeader.getNoteStartX() - plain.getNoteStartX();
 }
 
-export function renderScore(container: HTMLElement, score: Score, options: RenderOptions): void {
+const same = (a: Position | null, staff: number, measure: number, tick: number) =>
+  a !== null && a.staff === staff && a.measure === measure && a.tick === tick;
+
+export function renderScore(container: HTMLElement, score: Score, options: RenderOptions): ScoreLayout {
   container.innerHTML = '';
   const drawing = document.createElement('div');
   const statusRow = document.createElement('div');
@@ -82,13 +82,16 @@ export function renderScore(container: HTMLElement, score: Score, options: Rende
     svg.style.height = '';
   }
 
-  const staff = score.staves[0];
+  const staffIndex = 0;
+  const staff = score.staves[staffIndex];
   const { beats, beatValue } = score.timeSignature;
   const timeSignature = `${beats}/${beatValue}`;
+  const length = measureLength(score.timeSignature);
   const extra = headerWidth(staff.clef, timeSignature);
   const count = staff.measures.length;
   const baseWidth = (WIDTH - 2 * MARGIN - extra) / count;
 
+  const layout: ScoreLayout = { topLineY: 0, lineSpacing: 10, measures: [] };
   let x = MARGIN;
   staff.measures.forEach((measure, i) => {
     const width = baseWidth + (i === 0 ? extra : 0);
@@ -96,21 +99,68 @@ export function renderScore(container: HTMLElement, score: Score, options: Rende
     if (i === 0) stave.addClef(staff.clef).addTimeSignature(timeSignature);
     if (i === count - 1) stave.setEndBarType(BarlineType.END);
     stave.setContext(ctx).draw();
+    layout.topLineY = stave.getYForLine(0);
+    layout.lineSpacing = stave.getSpacingBetweenLines();
+    const top = stave.getYForLine(0);
+    const bottom = stave.getYForLine(stave.getNumLines() - 1);
 
-    const length = measureLength(score.timeSignature);
+    const placed = placeEvents(measure);
     const notes = measure.map((event) => toStaveNote(event, staff, event.ticks === length));
     const voice = new Voice({ numBeats: beats, beatValue }).addTickables(notes);
+    notes.forEach((note) => note.setStave(stave)); // needed before reading note positions
     // Eighths are beamed per beat.
     const beams = Beam.generateBeams(notes, { groups: [new Fraction(1, beatValue)] });
     new Formatter().joinVoices([voice]).formatToStave([voice], stave);
+
+    const measureLayout: MeasureLayout = {
+      x,
+      width,
+      events: placed.map(({ start, event }, j) => ({
+        tick: start,
+        kind: event.kind,
+        headLeft: notes[j].getNoteHeadBeginX(),
+        headRight: notes[j].getNoteHeadEndX(),
+        y: notes[j].getYs()[0],
+      })),
+    };
+    layout.measures.push(measureLayout);
+
+    // Selected note: a soft area behind it (drawn first, so it lies underneath).
+    for (const e of measureLayout.events) {
+      if (e.kind === 'note' && same(options.selection, staffIndex, i, e.tick)) {
+        ctx.openGroup('selection');
+        ctx.beginPath();
+        ctx.rect(e.headLeft - 7, top - 22, e.headRight - e.headLeft + 14, bottom - top + 44);
+        ctx.fill();
+        ctx.closeGroup();
+      }
+    }
+
     voice.draw(ctx, stave);
     beams.forEach((beam) => beam.setContext(ctx).draw());
+
+    placed.forEach(({ start, event }, j) => {
+      if (event.kind === 'note' && same(options.preview, staffIndex, i, start)) {
+        notes[j].getSVGElement()?.classList.add('preview');
+      }
+    });
+
+    // Cursor: a line just before the spot where the next note will go.
+    if (options.cursor && options.cursor.staff === staffIndex && options.cursor.measure === i) {
+      const target = measureLayout.events.find((e) => e.tick === options.cursor!.tick);
+      const cursorX = target ? target.headLeft - 6 : x + width - 6;
+      ctx.openGroup('cursor');
+      ctx.beginPath();
+      ctx.rect(cursorX - 1.5, top - 14, 3, bottom - top + 28);
+      ctx.fill();
+      ctx.closeGroup();
+    }
 
     // German note names, all on one line below the staff.
     if (options.showNoteNames) {
       ctx.openGroup('note-names');
       ctx.setFont('sans-serif', 14);
-      measure.forEach((event, j) => {
+      placed.forEach(({ event }, j) => {
         if (event.kind !== 'note') return;
         const center = (notes[j].getNoteHeadBeginX() + notes[j].getNoteHeadEndX()) / 2;
         ctx.fillText(germanNoteName(event.pitch), center, NAME_Y);
@@ -130,4 +180,5 @@ export function renderScore(container: HTMLElement, score: Score, options: Rende
 
     x += width;
   });
+  return layout;
 }

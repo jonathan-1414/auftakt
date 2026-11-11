@@ -28,36 +28,59 @@ body {
 
 .toolbar {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 24px;
   padding: 8px 16px;
 }
 
-.app-name {
-  font-weight: 600;
-}
-
-.tools {
+.tool-group {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-left: auto;
 }
 
 .tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   min-width: 44px;
   min-height: 44px;
-  padding: 0 16px;
+  padding: 0 14px;
   border: 1px solid var(--muted);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--text);
   font: inherit;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tool .glyph {
+  font-family: Bravura, serif;
+  font-size: 22px;
+  line-height: 1;
+  /* The music symbols sit on the baseline; lift them a bit. */
+  position: relative;
+  top: 4px;
 }
 
 .tool[aria-pressed='true'] {
   background: var(--accent);
   border-color: var(--accent);
+}
+
+/* Greyed out: does not fit into the rest of the measure, or nothing to do */
+.tool.unavailable,
+.tool:disabled {
+  border-style: dashed;
+  color: var(--muted);
+  cursor: default;
+}
+.tool.unavailable[aria-pressed='true'] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-text);
 }
 
 .score-area {
@@ -69,6 +92,11 @@ body {
 
 #score {
   width: 100%;
+  /* One finger enters notes; two fingers still zoom. */
+  touch-action: pinch-zoom;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   background: var(--surface);
   border-radius: var(--radius);
 }
@@ -105,4 +133,19 @@ body {
 }
 .status.missing {
   color: var(--accent-text);
+}
+
+/* States in the score: cursor, selected note, preview note */
+#score .vf-cursor rect {
+  fill: var(--accent);
+}
+#score .vf-selection rect {
+  fill: var(--accent-soft);
+}
+#score .preview {
+  opacity: 0.45;
+}
+#score .vf-cursor rect,
+#score .vf-selection rect {
+  stroke: none;
 }

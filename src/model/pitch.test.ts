@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { isInRange, parsePitch, pitchToMidi } from './pitch';
+import {
+  diatonicIndex,
+  isInRange,
+  parsePitch,
+  pitchAtStaffPosition,
+  pitchFromDiatonic,
+  pitchToMidi,
+} from './pitch';
 
 describe('pitch', () => {
   it('parses scientific notation', () => {
@@ -21,5 +28,26 @@ describe('pitch', () => {
     expect(isInRange(parsePitch('F5'), range)).toBe(true);
     expect(isInRange(parsePitch('B3'), range)).toBe(false);
     expect(isInRange(parsePitch('G5'), range)).toBe(false);
+  });
+});
+
+describe('staff positions', () => {
+  it('maps lines and spaces of the treble clef', () => {
+    const name = (n: number) => {
+      const x = pitchAtStaffPosition('treble', n);
+      return `${x.step}${x.octave}`;
+    };
+    expect(name(0)).toBe('F5'); // top line
+    expect(name(1)).toBe('E5');
+    expect(name(4)).toBe('B4'); // middle line
+    expect(name(8)).toBe('E4'); // bottom line
+    expect(name(10)).toBe('C4'); // ledger line below
+    expect(name(-1)).toBe('G5');
+  });
+
+  it('counts white keys', () => {
+    expect(diatonicIndex(parsePitch('C4'))).toBe(28);
+    expect(pitchFromDiatonic(28)).toEqual(parsePitch('C4'));
+    expect(pitchFromDiatonic(27)).toEqual(parsePitch('B3'));
   });
 });
