@@ -51,6 +51,15 @@ function toStaveNote(event: ScoreEvent, staff: Staff, wholeMeasure: boolean): St
   });
 }
 
+/**
+ * Adds a CSS class to a drawn note. A beamed note's stem is drawn by the beam
+ * and sits outside the note's own group, so it gets the class as well.
+ */
+function markNote(note: StaveNote, className: string): void {
+  note.getSVGElement()?.classList.add(className);
+  note.getStem()?.getSVGElement()?.classList.add(className);
+}
+
 /** Extra width that clef and time signature take up in the first measure. */
 function headerWidth(clef: string, timeSignature: string): number {
   const plain = new Stave(0, 0, 200);
@@ -130,15 +139,17 @@ export function renderScore(container: HTMLElement, score: Score, options: Rende
 
     placed.forEach(({ start, event }, j) => {
       if (event.kind !== 'note') return;
-      if (same(options.preview, staffIndex, i, start)) notes[j].getSVGElement()?.classList.add('preview');
+      if (same(options.preview, staffIndex, i, start)) markNote(notes[j], 'preview');
       // Selected note: drawn in the accent colour, the staff lines stay visible.
-      if (same(options.selection, staffIndex, i, start)) notes[j].getSVGElement()?.classList.add('selected');
+      if (same(options.selection, staffIndex, i, start)) markNote(notes[j], 'selected');
     });
 
     // Cursor: a line just before the spot where the next note will go.
     if (options.cursor && options.cursor.staff === staffIndex && options.cursor.measure === i) {
       const target = measureLayout.events.find((e) => e.tick === options.cursor!.tick);
-      const cursorX = target ? target.headLeft - 6 : x + width - 6;
+      // An empty measure has one centred rest; the cursor still goes to the start.
+      const emptyMeasure = measure.length === 1 && target?.kind === 'rest';
+      const cursorX = emptyMeasure ? stave.getNoteStartX() + 4 : target ? target.headLeft - 6 : x + width - 6;
       ctx.openGroup('cursor');
       ctx.beginPath();
       ctx.rect(cursorX - 1.5, top - 14, 3, bottom - top + 28);
