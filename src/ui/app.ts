@@ -1,6 +1,6 @@
 import { advanceCursor, initialCursor, positionForTap } from '../model/cursor';
 import { isMetaComplete } from '../model/meta';
-import { canPlace, changePitch, deleteNote, setNote } from '../model/edit';
+import { canPlace, changeDuration, changePitch, deleteNote, setNote } from '../model/edit';
 import { History } from '../model/history';
 import { isInRange, pitchAtStaffPosition } from '../model/pitch';
 import { createEmptyScore } from '../model/score';
@@ -91,11 +91,13 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
       void player.play(schedule);
     },
     selectDuration(ticks) {
-      // The toolbar always chooses the value of the next note, it never changes a note.
-      // A selected note is let go: the cursor goes behind the last note of its measure.
+      // With a note selected, the button changes that note's value
+      // (if the new value fits; otherwise nothing changes).
       if (selection) {
-        cursor = advanceCursor(score, selection);
-        selection = null;
+        const result = changeDuration(score, module, selection, ticks);
+        if (!result.ok) return;
+        history.push({ score, cursor });
+        score = result.score;
       }
       duration = ticks;
       render();
@@ -232,17 +234,10 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
         return;
       }
 
-      // Touching elsewhere chooses the spot under the finger.
+      // Touching elsewhere chooses the spot under the finger (a preview first).
+      // The spot is fixed now; moving the finger only changes the pitch.
       cursor = positionForTap(score, cursor.staff, hit.measure, hit.columnTick);
-      // With a note selected, this touch only lets it go and moves the cursor there;
-      // the next touch places a note.
-      if (selection) {
-        selection = null;
-        render();
-        return;
-      }
-      // Otherwise a preview note appears. The spot is fixed now; moving the finger
-      // only changes the pitch.
+      selection = null;
       if (canPlace(score, module, cursor, duration)) {
         gesture = { kind: 'place', before };
         const pitch = pitchAt(y);
