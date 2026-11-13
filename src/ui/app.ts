@@ -117,8 +117,8 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
       const yes = await confirm('Neue Partitur beginnen? Alle Noten dieser Partitur werden gelöscht.', 'Neu beginnen');
       if (!yes) return;
       player.stop();
-      // Names and class are kept as a suggestion, the title starts empty.
-      score = { ...createEmptyScore(module), meta: { ...score.meta, title: '' } };
+      // Everything starts empty, also names, class and title.
+      score = createEmptyScore(module);
       cursor = initialCursor(score);
       selection = null;
       history.clear();

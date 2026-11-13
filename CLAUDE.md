@@ -185,8 +185,8 @@ const modul1: ModuleConfig = {
   wegklicken. „Rückgängig“ betrifft nur Noten, nicht die Angaben.
 - Eine Notenzeile, Violinschlüssel, C-Dur, 4/4-Takt, genau 4 Takte in einer Zeile,
   Schlussstrich automatisch, keine Taktnummern.
-- Button „Neu“ (mit Rückfrage) beginnt eine leere Partitur. Danach erscheint der Startdialog,
-  Namen und Klasse sind als Vorschlag eingetragen, der Titel ist leer.
+- Button „Neu“ (mit Rückfrage) beginnt eine leere Partitur. Danach erscheint der Startdialog
+  mit leeren Feldern (auch Namen und Klasse).
 
 **Noteneingabe** (immer Eingabemodus, kein Umschalten)
 - Leiste mit den Notenwerten Ganze, Halbe, Viertel, Achtel. Ein Wert ist immer gewählt.
