@@ -29,10 +29,29 @@ body {
 
 .toolbar {
   display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  padding: 8px 16px;
+}
+.toolbar-main {
+  flex: 1;
+  display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 8px 24px;
-  padding: 8px 16px;
+}
+.tool-group.corner {
+  flex: none;
+  flex-wrap: nowrap;
+}
+.tool.icon {
+  justify-content: center;
+  width: 44px;
+  padding: 0;
+}
+.tool.icon .icon-glyph {
+  font-size: 24px;
+  line-height: 1;
 }
 
 .tool-group {

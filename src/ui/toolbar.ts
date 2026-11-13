@@ -50,6 +50,22 @@ function button(label: string, onClick: () => void, glyph?: string): HTMLButtonE
   return b;
 }
 
+/** A button that shows only a symbol; the name is given for screen readers and as a tooltip. */
+function iconButton(name: string, glyph: string, onClick: () => void): HTMLButtonElement {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'tool icon';
+  b.setAttribute('aria-label', name);
+  b.title = name;
+  const symbol = document.createElement('span');
+  symbol.className = 'icon-glyph';
+  symbol.setAttribute('aria-hidden', 'true');
+  symbol.textContent = glyph;
+  b.append(symbol);
+  b.addEventListener('click', onClick);
+  return b;
+}
+
 export function createToolbar(
   container: HTMLElement,
   durations: number[],
@@ -86,11 +102,16 @@ export function createToolbar(
   namesButton.prepend(namesBar);
   actionGroup.append(undoButton, deleteButton, namesButton);
 
+  // "New" and "Details" are used rarely: symbols only, always in the top right corner.
   const scoreGroup = document.createElement('div');
-  scoreGroup.className = 'tool-group';
-  scoreGroup.append(button('Neu', actions.newScore, '+'), button('Angaben', actions.editDetails, 'ⓘ'));
+  scoreGroup.className = 'tool-group corner';
+  scoreGroup.append(iconButton('Neue Partitur', '+', actions.newScore), iconButton('Angaben ändern', 'ⓘ', actions.editDetails));
 
-  container.append(durationGroup, playGroup, actionGroup, scoreGroup);
+  // The main groups wrap onto more lines if needed; the corner group stays at the top right.
+  const main = document.createElement('div');
+  main.className = 'toolbar-main';
+  main.append(durationGroup, playGroup, actionGroup);
+  container.append(main, scoreGroup);
 
   return {
     update(state) {
