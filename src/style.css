@@ -91,18 +91,21 @@ body {
 }
 
 .tool .glyph {
+  font-size: 16px;
+  line-height: 1;
+}
+/* Note symbols from the music font sit low on the baseline: move them a bit. */
+.tool .glyph.music {
   font-family: Bravura, serif;
   font-size: 22px;
-  line-height: 1;
-  /* The music symbols sit on the baseline; lift them a bit. */
   position: relative;
   top: 4px;
 }
-
 .tool.play .glyph {
-  font-family: var(--font);
   font-size: 14px;
-  top: 0;
+}
+.tool .glyph svg {
+  display: block;
 }
 
 .tool[aria-pressed='true'] {

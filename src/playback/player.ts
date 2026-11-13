@@ -48,6 +48,8 @@ export function createPlayer(events: PlayerEvents): Player {
     const transport = Tone.getTransport();
     transport.stop();
     transport.cancel();
+    // Markings already waiting to be drawn must not light up a note after the stop.
+    Tone.getDraw().cancel();
     sampler?.releaseAll();
     events.onNote(null);
     events.onEnd();

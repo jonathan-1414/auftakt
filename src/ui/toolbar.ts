@@ -34,15 +34,22 @@ export interface ToolbarActions {
   handIn(): void;
 }
 
-function button(label: string, onClick: () => void, glyph?: string): HTMLButtonElement {
+/**
+ * A button with a short label. `glyph` is a symbol in front of it: a note from the
+ * music font, a drawn SVG symbol (see icons.ts) or an ordinary character.
+ */
+type Glyph = { music: string } | { svg: string } | { text: string };
+
+function button(label: string, onClick: () => void, glyph?: Glyph): HTMLButtonElement {
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'tool';
   if (glyph) {
     const symbol = document.createElement('span');
-    symbol.className = 'glyph';
+    symbol.className = 'music' in glyph ? 'glyph music' : 'glyph';
     symbol.setAttribute('aria-hidden', 'true');
-    symbol.textContent = glyph;
+    if ('svg' in glyph) symbol.innerHTML = glyph.svg; // our own SVG, not user input
+    else symbol.textContent = 'music' in glyph ? glyph.music : glyph.text;
     b.append(symbol);
   }
   const text = document.createElement('span');
@@ -74,7 +81,7 @@ export function createToolbar(
   durationGroup.setAttribute('role', 'group');
   durationGroup.setAttribute('aria-label', 'Notenwert');
   const durationButtons = durations.map((ticks) => {
-    const b = button(DURATION_NAMES[ticks], () => actions.selectDuration(ticks), DURATION_GLYPHS[ticks]);
+    const b = button(DURATION_NAMES[ticks], () => actions.selectDuration(ticks), { music: DURATION_GLYPHS[ticks] });
     b.classList.add('duration');
     durationGroup.append(b);
     return { ticks, b };
@@ -82,7 +89,7 @@ export function createToolbar(
 
   const playGroup = document.createElement('div');
   playGroup.className = 'tool-group';
-  const playButton = button('Abspielen', actions.togglePlay, '▶');
+  const playButton = button('Abspielen', actions.togglePlay, { text: '▶' });
   playButton.classList.add('play');
   playGroup.append(playButton);
   const playLabel = playButton.querySelector('span:not(.glyph)')!;
@@ -90,8 +97,8 @@ export function createToolbar(
 
   const actionGroup = document.createElement('div');
   actionGroup.className = 'tool-group';
-  const undoButton = button('Rückgängig', actions.undo, '↶');
-  const deleteButton = button('Löschen', actions.deleteSelection, '✕');
+  const undoButton = button('Rückgängig', actions.undo, { svg: ICONS.undo });
+  const deleteButton = button('Löschen', actions.deleteSelection, { svg: ICONS.cross });
   const namesButton = button('Notennamen', actions.showNoteNames);
   namesButton.classList.add('timed');
   const namesBar = document.createElement('span');

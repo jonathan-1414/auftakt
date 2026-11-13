@@ -58,6 +58,7 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
   let playedScore: Score | null = null;
   const player = createPlayer({
     onNote(at) {
+      if (at && !playedScore) return; // a late marking after the stop
       playing = at;
       render();
     },
@@ -84,6 +85,8 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
       const schedule = buildSchedule(score);
       if (schedule.notes.length === 0) return; // nothing to play
       playedScore = score;
+      // While playing, only the sounding note is marked: no selection, no cursor.
+      selection = null;
       render();
       void player.play(schedule);
     },
@@ -182,8 +185,8 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
     }
     layout = renderScore(scoreElement, shown, {
       showNoteNames,
-      cursor: preview ? null : cursor,
-      selection: preview ? null : selection,
+      cursor: preview || playedScore ? null : cursor,
+      selection: preview || playedScore ? null : selection,
       preview: preview?.at ?? null,
       playing,
     });
