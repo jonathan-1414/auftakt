@@ -175,7 +175,7 @@ export function renderScore(container: HTMLElement, score: Score, options: Rende
       ctx.closeGroup();
     }
 
-    // Measure check below the measure: a tick with "voll", or an empty dashed circle.
+    // Measure check below the measure: a tick when full, otherwise an empty dashed circle.
     const full = isMeasureFull(measure);
     const left = i === 0 ? stave.getNoteStartX() : x;
     const cell = document.createElement('div');
@@ -183,7 +183,7 @@ export function renderScore(container: HTMLElement, score: Score, options: Rende
     cell.style.left = `${(left / WIDTH) * 100}%`;
     cell.style.width = `${((x + width - left) / WIDTH) * 100}%`;
     cell.innerHTML = full
-      ? `<span class="status-mark" aria-hidden="true">${TICK_ICON}</span><span>voll</span>`
+      ? `<span class="status-mark" role="img" aria-label="voll">${TICK_ICON}</span>`
       : `<span class="status-mark" role="img" aria-label="noch nicht voll"></span>`;
     statusRow.append(cell);
 

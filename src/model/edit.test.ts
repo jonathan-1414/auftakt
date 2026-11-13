@@ -1,7 +1,7 @@
 import { describe as group, expect, it } from 'vitest';
 import { modul1 } from '../modules/modul1';
 import { describe, p } from '../test/helpers';
-import { canPlace, changePitch, deleteNote, setNote, type EditResult } from './edit';
+import { canPlace, changeDuration, changePitch, deleteNote, setNote, type EditResult } from './edit';
 import { firstFreeTick } from './measure';
 import { createEmptyScore } from './score';
 import type { Pitch, Score } from './types';
@@ -182,6 +182,29 @@ group('changePitch', () => {
       ok: false,
       error: 'no-note',
     });
+  });
+});
+
+group('changeDuration', () => {
+  it('makes a note shorter, the rest becomes a gap', () => {
+    const score = ok(changeDuration(place([[0, 96, 'E4'], [96, 96, 'G4']]), modul1, at(0), 48));
+    expect(m(score)).toEqual(['n48@0 E4', 'r48@48', 'n96@96 G4']);
+  });
+
+  it('makes a note longer and replaces what follows', () => {
+    const score = ok(changeDuration(place([[0, 48, 'E4'], [48, 48, 'F4'], [96, 96, 'G4']]), modul1, at(0), 96));
+    expect(m(score)).toEqual(['n96@0 E4', 'n96@96 G4']);
+  });
+
+  it('fails if the longer note does not fit into the measure', () => {
+    expect(changeDuration(place([[144, 48, 'C4']]), modul1, at(144), 96)).toEqual({
+      ok: false,
+      error: 'does-not-fit',
+    });
+  });
+
+  it('fails if there is no note', () => {
+    expect(changeDuration(createEmptyScore(modul1), modul1, at(0), 48)).toEqual({ ok: false, error: 'no-note' });
   });
 });
 

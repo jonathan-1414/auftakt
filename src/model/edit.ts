@@ -84,3 +84,16 @@ export function changePitch(score: Score, module: ModuleConfig, at: Position, pi
   const updated = measure.map((event, i) => (i === index ? { ...event, pitch: { ...pitch } } : event));
   return { ok: true, score: withMeasure(score, at, updated) };
 }
+
+/**
+ * Changes the note value of the note that starts at this position; the pitch stays.
+ * Shorter: the rest of the old note becomes a gap. Longer: it replaces what follows
+ * (like placing a note). It fails if the longer note would not fit into the measure.
+ */
+export function changeDuration(score: Score, module: ModuleConfig, at: Position, ticks: number): EditResult {
+  const measure = getMeasure(score, at);
+  if (!measure) return fail('invalid-position');
+  const note = placeEvents(measure).find((p) => p.start === at.tick && p.event.kind === 'note')?.event;
+  if (!note || note.kind !== 'note') return fail('no-note');
+  return setNote(score, module, at, note.pitch, ticks);
+}

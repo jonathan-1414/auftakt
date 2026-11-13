@@ -198,9 +198,12 @@ const modul1: ModuleConfig = {
 - Notenkopf antippen = auswählen (die Note erscheint in `--accent`). Eine ausgewählte Note
   kann nach oben und unten gezogen werden (Tonhöhe ändern, erklingt dabei) und gelöscht
   werden (wird zur Lücke).
+- Beim Auswählen springt die Notenwert-Leiste auf den Wert der Note. Ein anderer Wert in der
+  Leiste ändert die ausgewählte Note (kürzer: Rest wird Lücke; länger: ersetzt, was folgt).
+  Passt der längere Wert nicht in den Takt, ändert sich nichts.
 - Achtel werden automatisch nach Zählzeiten mit Balken verbunden.
 - **Takt-Prüfung** mit nur zwei Zuständen, damit Schüler.innen selbst überlegen, was noch
-  passt: Unter einem vollen Takt steht ein Häkchen mit „voll“, unter einem nicht vollen Takt
+  passt: Unter einem vollen Takt steht ein Häkchen (ohne Text), unter einem nicht vollen Takt
   ein leerer, gestrichelter Kreis. Ein leerer Takt ist ganz leer (keine Ganztaktpause).
 - **Rückgängig** (mehrere Schritte), kein Wiederholen.
 - Schalter **Notennamen** blendet deutsche Notennamen in oder unter den Notenköpfen ein und aus.

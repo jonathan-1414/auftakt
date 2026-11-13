@@ -1,5 +1,5 @@
 import { advanceCursor, positionForTap } from '../model/cursor';
-import { canPlace, changePitch, deleteNote, setNote } from '../model/edit';
+import { canPlace, changeDuration, changePitch, deleteNote, setNote } from '../model/edit';
 import { History } from '../model/history';
 import { isInRange, pitchAtStaffPosition } from '../model/pitch';
 import { createEmptyScore } from '../model/score';
@@ -40,6 +40,14 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
 
   const updateToolbar = createToolbar(root.querySelector('.toolbar')!, module.durations, {
     selectDuration(ticks) {
+      // With a note selected, the button changes that note's value
+      // (if the new value fits; otherwise nothing changes).
+      if (selection) {
+        const result = changeDuration(score, module, selection, ticks);
+        if (!result.ok) return;
+        history.push({ score, cursor });
+        score = result.score;
+      }
       duration = ticks;
       render();
     },
@@ -87,6 +95,16 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
     });
   }
 
+  /** Note value of the note that starts at this position, if there is one. */
+  function noteTicksAt(at: Position): number | null {
+    let start = 0;
+    for (const event of score.staves[at.staff].measures[at.measure]) {
+      if (start === at.tick && event.kind === 'note') return event.ticks;
+      start += event.ticks;
+    }
+    return null;
+  }
+
   /** Pitch under the finger, or null outside the module's range. */
   function pitchAt(y: number): Pitch | null {
     if (!layout) return null;
@@ -106,6 +124,8 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
       if (hit.noteTick !== null) {
         selection = { staff: cursor.staff, measure: hit.measure, tick: hit.noteTick };
         cursor = selection;
+        // The toolbar shows the value of the selected note.
+        duration = noteTicksAt(selection) ?? duration;
         gesture = { kind: 'drag', at: selection, before, changed: false };
         render();
         return;
