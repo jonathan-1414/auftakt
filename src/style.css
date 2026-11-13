@@ -139,13 +139,16 @@ body {
 #score .vf-cursor rect {
   fill: var(--accent);
 }
-#score .vf-selection rect {
-  fill: var(--accent-soft);
+/* Selected note: head and flag (font glyphs) are filled, the stem is a line. */
+#score .selected text {
+  fill: var(--accent);
+}
+#score .selected path {
+  stroke: var(--accent);
 }
 #score .preview {
   opacity: 0.45;
 }
-#score .vf-cursor rect,
-#score .vf-selection rect {
+#score .vf-cursor rect {
   stroke: none;
 }

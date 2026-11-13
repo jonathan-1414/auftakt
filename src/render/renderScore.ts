@@ -125,24 +125,14 @@ export function renderScore(container: HTMLElement, score: Score, options: Rende
     };
     layout.measures.push(measureLayout);
 
-    // Selected note: a soft area behind it (drawn first, so it lies underneath).
-    for (const e of measureLayout.events) {
-      if (e.kind === 'note' && same(options.selection, staffIndex, i, e.tick)) {
-        ctx.openGroup('selection');
-        ctx.beginPath();
-        ctx.rect(e.headLeft - 7, top - 22, e.headRight - e.headLeft + 14, bottom - top + 44);
-        ctx.fill();
-        ctx.closeGroup();
-      }
-    }
-
     voice.draw(ctx, stave);
     beams.forEach((beam) => beam.setContext(ctx).draw());
 
     placed.forEach(({ start, event }, j) => {
-      if (event.kind === 'note' && same(options.preview, staffIndex, i, start)) {
-        notes[j].getSVGElement()?.classList.add('preview');
-      }
+      if (event.kind !== 'note') return;
+      if (same(options.preview, staffIndex, i, start)) notes[j].getSVGElement()?.classList.add('preview');
+      // Selected note: drawn in the accent colour, the staff lines stay visible.
+      if (same(options.selection, staffIndex, i, start)) notes[j].getSVGElement()?.classList.add('selected');
     });
 
     // Cursor: a line just before the spot where the next note will go.
