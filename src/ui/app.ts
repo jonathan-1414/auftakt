@@ -9,7 +9,11 @@ import { hitTest, staffPositionAt } from '../input/hitTest';
 import { attachScoreInput } from '../input/scoreInput';
 import type { ScoreLayout } from '../render/layout';
 import { renderScore } from '../render/renderScore';
+import { createTimedReveal } from './timedReveal';
 import { createToolbar } from './toolbar';
+
+const NOTE_NAMES_SHOW_MS = 5000;
+const NOTE_NAMES_LOCK_MS = 30000;
 
 interface Snapshot {
   score: Score;
@@ -38,7 +42,7 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
   let layout: ScoreLayout | null = null;
   const history = new History<Snapshot>();
 
-  const updateToolbar = createToolbar(root.querySelector('.toolbar')!, module.durations, {
+  const toolbar = createToolbar(root.querySelector('.toolbar')!, module.durations, {
     selectDuration(ticks) {
       // With a note selected, the button changes that note's value
       // (if the new value fits; otherwise nothing changes).
@@ -69,10 +73,17 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
       selection = null;
       render();
     },
-    toggleNoteNames() {
-      showNoteNames = !showNoteNames;
-      render();
+    showNoteNames() {
+      noteNames.start();
     },
+  });
+
+  // Note names can only be peeked at: shown for a few seconds, then locked for a while,
+  // so that students read the notes instead of playing by letters.
+  const noteNames = createTimedReveal(NOTE_NAMES_SHOW_MS, NOTE_NAMES_LOCK_MS, (phase, ms) => {
+    showNoteNames = phase === 'showing';
+    toolbar.setNoteNamesPhase(phase, ms);
+    render();
   });
 
   function render(): void {
@@ -87,11 +98,10 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
       selection: preview ? null : selection,
       preview: preview?.at ?? null,
     });
-    updateToolbar({
+    toolbar.update({
       duration,
       canUndo: history.canUndo(),
       canDelete: selection !== null,
-      showNoteNames,
     });
   }
 

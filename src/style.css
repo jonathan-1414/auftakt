@@ -71,7 +71,34 @@ body {
   border-color: var(--accent);
 }
 
-/* Greyed out: does not fit into the rest of the measure, or nothing to do */
+/* Button with a time bar (note names): the bar lies behind the label. */
+.tool.timed {
+  position: relative;
+  overflow: hidden;
+}
+.tool.timed > span:not(.time-bar) {
+  position: relative;
+}
+.time-bar {
+  position: absolute;
+  inset: 0;
+  transform-origin: left;
+  transform: scaleX(0);
+}
+/* Shown: the button is orange, the orange empties from right to left. */
+.tool.timed[data-phase='showing'] {
+  background: var(--surface);
+  border-color: var(--accent);
+}
+.tool.timed[data-phase='showing'] .time-bar {
+  background: var(--accent);
+}
+/* Locked: a soft bar fills up until the button can be used again. */
+.tool.timed[data-phase='cooldown'] .time-bar {
+  background: var(--accent-soft);
+}
+
+/* Greyed out: nothing to do, or locked for a while */
 .tool:disabled {
   border-style: dashed;
   color: var(--muted);

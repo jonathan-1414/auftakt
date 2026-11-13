@@ -72,8 +72,8 @@ Teil des Bildschirms ein, alles andere tritt zurück.
   Google Fonts oder einem anderen fremden Server geladen (Datenschutz, später offline nutzbar).
   Die Notensymbole kommen weiter aus der VexFlow-Notenschrift.
 - **Formen:** abgerundete Ecken, keine Schatten, keine Verläufe, keine Animationen außer der
-  mitlaufenden Markierung. Symbole in Leisten immer mit kurzer Beschriftung („Halbe“,
-  „Abspielen“), damit niemand raten muss.
+  mitlaufenden Markierung und dem Zeitbalken im Button „Notennamen“. Symbole in Leisten
+  immer mit kurzer Beschriftung („Halbe“, „Abspielen“), damit niemand raten muss.
 - Kein dunkler Modus in Modul 1.
 
 ## 3. Architektur
@@ -206,7 +206,10 @@ const modul1: ModuleConfig = {
   passt: Unter einem vollen Takt steht ein Häkchen (ohne Text), unter einem nicht vollen Takt
   ein leerer, gestrichelter Kreis. Ein leerer Takt ist ganz leer (keine Ganztaktpause).
 - **Rückgängig** (mehrere Schritte), kein Wiederholen.
-- Schalter **Notennamen** blendet deutsche Notennamen in oder unter den Notenköpfen ein und aus.
+- Button **Notennamen** zeigt deutsche Notennamen unter den Notenköpfen **nur kurz**: 5 Sekunden
+  lang, dabei leert sich die orange Füllung des Buttons als Balken. Danach ist der Button
+  30 Sekunden gesperrt, ein heller Balken füllt sich, bis er wieder geht. Grund: Schüler.innen
+  sollen nachschauen können, aber nicht dauerhaft nach Buchstaben spielen.
 
 **Wiedergabe**
 - Play/Stop-Button, Tempo fest ♩ = 90, Klavierklang.

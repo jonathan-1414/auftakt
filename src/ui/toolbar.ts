@@ -1,4 +1,5 @@
 import { DURATION_NAMES } from '../model/constants';
+import type { RevealPhase } from './timedReveal';
 
 /** Music font symbols (SMuFL code points in Bravura) for the note value buttons. */
 const DURATION_GLYPHS: Record<number, string> = {
@@ -12,14 +13,19 @@ export interface ToolbarState {
   duration: number;
   canUndo: boolean;
   canDelete: boolean;
-  showNoteNames: boolean;
+}
+
+export interface Toolbar {
+  update(state: ToolbarState): void;
+  /** Note names button: a bar empties while names are shown, then fills while locked. */
+  setNoteNamesPhase(phase: RevealPhase, durationMs: number): void;
 }
 
 export interface ToolbarActions {
   selectDuration(ticks: number): void;
   undo(): void;
   deleteSelection(): void;
-  toggleNoteNames(): void;
+  showNoteNames(): void;
 }
 
 function button(label: string, onClick: () => void, glyph?: string): HTMLButtonElement {
@@ -44,7 +50,7 @@ export function createToolbar(
   container: HTMLElement,
   durations: number[],
   actions: ToolbarActions,
-): (state: ToolbarState) => void {
+): Toolbar {
   const durationGroup = document.createElement('div');
   durationGroup.className = 'tool-group';
   durationGroup.setAttribute('role', 'group');
@@ -60,17 +66,37 @@ export function createToolbar(
   actionGroup.className = 'tool-group';
   const undoButton = button('Rückgängig', actions.undo, '↶');
   const deleteButton = button('Löschen', actions.deleteSelection, '✕');
-  const namesButton = button('Notennamen', actions.toggleNoteNames);
+  const namesButton = button('Notennamen', actions.showNoteNames);
+  namesButton.classList.add('timed');
+  const namesBar = document.createElement('span');
+  namesBar.className = 'time-bar';
+  namesBar.setAttribute('aria-hidden', 'true');
+  namesButton.prepend(namesBar);
   actionGroup.append(undoButton, deleteButton, namesButton);
 
   container.append(durationGroup, actionGroup);
 
-  return (state) => {
-    for (const { ticks, b } of durationButtons) {
-      b.setAttribute('aria-pressed', String(ticks === state.duration));
-    }
-    undoButton.disabled = !state.canUndo;
-    deleteButton.disabled = !state.canDelete;
-    namesButton.setAttribute('aria-pressed', String(state.showNoteNames));
+  return {
+    update(state) {
+      for (const { ticks, b } of durationButtons) {
+        b.setAttribute('aria-pressed', String(ticks === state.duration));
+      }
+      undoButton.disabled = !state.canUndo;
+      deleteButton.disabled = !state.canDelete;
+    },
+
+    setNoteNamesPhase(phase, durationMs) {
+      namesButton.dataset.phase = phase;
+      namesButton.disabled = phase === 'cooldown';
+      namesButton.setAttribute('aria-pressed', String(phase === 'showing'));
+      if (phase === 'idle') return;
+      // Jump to the start without animation, then run the bar to the end.
+      const [from, to] = phase === 'showing' ? [1, 0] : [0, 1];
+      namesBar.style.transition = 'none';
+      namesBar.style.transform = `scaleX(${from})`;
+      void namesBar.offsetWidth; // makes the browser apply the start value first
+      namesBar.style.transition = `transform ${durationMs}ms linear`;
+      namesBar.style.transform = `scaleX(${to})`;
+    },
   };
 }
