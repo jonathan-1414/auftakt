@@ -103,7 +103,7 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
       if (!result.ok) return;
       history.push({ score, cursor });
       score = result.score;
-      cursor = selection;
+      cursor = advanceCursor(score, selection); // behind the last note of that measure
       selection = null;
       render();
     },
@@ -221,7 +221,7 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
         if (result.ok) {
           history.push(done.before);
           score = result.score;
-          cursor = advanceCursor(score, preview.at, duration);
+          cursor = advanceCursor(score, preview.at);
           selection = null;
         }
       }

@@ -22,21 +22,21 @@ describe('buildSchedule', () => {
     expect(buildSchedule(createEmptyScore(modul1))).toEqual({ notes: [], end: 0 });
   });
 
-  it('times notes by tempo and keeps gaps as silence', () => {
-    const schedule = buildSchedule(place([[0, 0, 48, 'C4'], [0, 96, 96, 'E4']]));
+  it('times notes by tempo', () => {
+    const schedule = buildSchedule(place([[0, 0, 48, 'C4'], [0, 48, 96, 'E4']]));
     expect(schedule.notes.map((n) => [n.note, n.time, n.duration])).toEqual([
       ['C4', 0, Q],
-      ['E4', 2 * Q, 2 * Q],
+      ['E4', Q, 2 * Q],
     ]);
-    expect(schedule.end).toBeCloseTo(4 * Q);
+    expect(schedule.end).toBeCloseTo(3 * Q);
   });
 
-  it('continues through later measures and stops after the last note', () => {
-    const schedule = buildSchedule(place([[2, 48, 24, 'G4']]));
-    expect(schedule.notes).toHaveLength(1);
-    expect(schedule.notes[0].time).toBeCloseTo(8 * Q + Q);
-    expect(schedule.notes[0].at).toEqual({ staff: 0, measure: 2, tick: 48 });
-    expect(schedule.end).toBeCloseTo(9.5 * Q);
+  it('keeps the free space of a measure as silence and stops after the last note', () => {
+    const schedule = buildSchedule(place([[0, 0, 48, 'C4'], [2, 0, 24, 'G4']]));
+    expect(schedule.notes).toHaveLength(2);
+    expect(schedule.notes[1].time).toBeCloseTo(8 * Q);
+    expect(schedule.notes[1].at).toEqual({ staff: 0, measure: 2, tick: 0 });
+    expect(schedule.end).toBeCloseTo(8.5 * Q);
   });
 });
 

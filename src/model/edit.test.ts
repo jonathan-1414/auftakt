@@ -72,28 +72,43 @@ group('setNote', () => {
     expect(m(score)).toEqual(['n48@0 G4', 'r48@48', 'r96@96']);
   });
 
-  it('overwrites: a longer note replaces several notes', () => {
+  it('appends in the free space, however far right the tap was', () => {
+    expect(m(place([[144, 48, 'E4']]))).toEqual(['n48@0 E4', 'r48@48', 'r96@96']);
+    expect(m(place([[0, 48, 'C4'], [168, 24, 'D4']]))).toEqual(['n48@0 C4', 'n24@48 D4', 'r24@72', 'r96@96']);
+  });
+
+  it('replacing with a shorter note moves the following notes left', () => {
     const score = place([
       [0, 48, 'C4'],
       [48, 48, 'D4'],
       [96, 48, 'E4'],
+      [48, 24, 'A4'],
+    ]);
+    expect(m(score)).toEqual(['n48@0 C4', 'n24@48 A4', 'n48@72 E4', 'r24@120', 'r48@144']);
+  });
+
+  it('replacing with a longer note moves the following notes right', () => {
+    const score = place([
+      [0, 48, 'C4'],
+      [48, 48, 'D4'],
       [0, 96, 'A4'],
     ]);
-    expect(m(score)).toEqual(['n96@0 A4', 'n48@96 E4', 'r48@144']);
+    expect(m(score)).toEqual(['n96@0 A4', 'n48@96 D4', 'r48@144']);
   });
 
-  it('overwrites: leftovers of a note that is hit in the middle become rests', () => {
-    const score = place([
-      [0, 96, 'C4'],
-      [48, 48, 'D4'],
-    ]);
-    expect(m(score)).toEqual(['r48@0', 'n48@48 D4', 'r96@96']);
+  it('rejects a note if the notes would no longer fit into the measure', () => {
+    const full = place([[0, 96, 'C4'], [96, 96, 'D4']]);
+    expect(setNote(full, modul1, at(0), p('C4'), 192)).toEqual({ ok: false, error: 'does-not-fit' });
+    expect(setNote(full, modul1, at(192), p('C4'), 24)).toEqual({ ok: false, error: 'does-not-fit' });
+    const three = place([[0, 48, 'C4'], [48, 48, 'D4'], [96, 48, 'E4']]);
+    expect(setNote(three, modul1, at(144), p('C4'), 96)).toEqual({ ok: false, error: 'does-not-fit' });
   });
 
-  it('rejects a note that does not fit into the rest of the measure', () => {
-    const score = createEmptyScore(modul1);
-    expect(setNote(score, modul1, at(144), p('C4'), 96)).toEqual({ ok: false, error: 'does-not-fit' });
-    expect(setNote(score, modul1, at(48), p('C4'), 192)).toEqual({ ok: false, error: 'does-not-fit' });
+  it('rejects a tick inside a note', () => {
+    expect(setNote(place([[0, 96, 'C4']]), modul1, at(48), p('D4'), 48)).toEqual({
+      ok: false,
+      error: 'invalid-position',
+    });
   });
 
   it('rejects note values that Modul 1 does not have', () => {
@@ -135,26 +150,27 @@ group('setNote', () => {
 });
 
 group('canPlace', () => {
-  it('tells which note values still fit (for greying out the toolbar)', () => {
-    const score = createEmptyScore(modul1);
+  it('tells which note values still fit at a spot', () => {
+    const score = place([[0, 48, 'C4'], [48, 48, 'D4'], [96, 48, 'E4']]);
     const fits = (tick: number) => modul1.durations.filter((d) => canPlace(score, modul1, at(tick), d));
-    expect(fits(0)).toEqual([192, 96, 48, 24]);
-    expect(fits(96)).toEqual([96, 48, 24]);
-    expect(fits(144)).toEqual([48, 24]);
-    expect(fits(168)).toEqual([24]);
-    expect(fits(192)).toEqual([]);
+    expect(fits(144)).toEqual([48, 24]); // free space: one quarter left
+    expect(fits(0)).toEqual([96, 48, 24]); // replacing the first quarter
+    expect(fits(24)).toEqual([]); // inside a note
+    expect(modul1.durations.filter((d) => canPlace(createEmptyScore(modul1), modul1, at(96), d))).toEqual([
+      192, 96, 48, 24,
+    ]);
   });
 });
 
 group('deleteNote', () => {
-  it('turns the note into an automatic rest and joins the gaps', () => {
+  it('removes the note; the following notes move left', () => {
     const score = place([
       [0, 48, 'C4'],
       [48, 48, 'D4'],
     ]);
     const one = ok(deleteNote(score, at(0)));
-    expect(m(one)).toEqual(['r48@0', 'n48@48 D4', 'r96@96']);
-    const both = ok(deleteNote(one, at(48)));
+    expect(m(one)).toEqual(['n48@0 D4', 'r48@48', 'r96@96']);
+    const both = ok(deleteNote(one, at(0)));
     expect(m(both)).toEqual(['r192@0']);
   });
 
@@ -166,8 +182,8 @@ group('deleteNote', () => {
 
 group('changePitch', () => {
   it('changes only the pitch', () => {
-    const score = ok(changePitch(place([[48, 96, 'C4']]), modul1, at(48), p('A4')));
-    expect(m(score)).toEqual(['r48@0', 'n96@48 A4', 'r48@144']);
+    const score = ok(changePitch(place([[0, 48, 'C4'], [48, 96, 'C4']]), modul1, at(48), p('A4')));
+    expect(m(score)).toEqual(['n48@0 C4', 'n96@48 A4', 'r48@144']);
   });
 
   it("stays within c'–f''", () => {
@@ -186,21 +202,20 @@ group('changePitch', () => {
 });
 
 group('changeDuration', () => {
-  it('makes a note shorter, the rest becomes a gap', () => {
+  it('makes a note shorter, the following notes move left', () => {
     const score = ok(changeDuration(place([[0, 96, 'E4'], [96, 96, 'G4']]), modul1, at(0), 48));
-    expect(m(score)).toEqual(['n48@0 E4', 'r48@48', 'n96@96 G4']);
+    expect(m(score)).toEqual(['n48@0 E4', 'n96@48 G4', 'r48@144']);
   });
 
-  it('makes a note longer and replaces what follows', () => {
-    const score = ok(changeDuration(place([[0, 48, 'E4'], [48, 48, 'F4'], [96, 96, 'G4']]), modul1, at(0), 96));
-    expect(m(score)).toEqual(['n96@0 E4', 'n96@96 G4']);
+  it('makes a note longer, the following notes move right', () => {
+    const score = ok(changeDuration(place([[0, 48, 'E4'], [48, 48, 'F4']]), modul1, at(0), 96));
+    expect(m(score)).toEqual(['n96@0 E4', 'n48@96 F4', 'r48@144']);
   });
 
-  it('fails if the longer note does not fit into the measure', () => {
-    expect(changeDuration(place([[144, 48, 'C4']]), modul1, at(144), 96)).toEqual({
-      ok: false,
-      error: 'does-not-fit',
-    });
+  it('fails if the notes would no longer fit into the measure', () => {
+    const score = place([[0, 48, 'C4'], [48, 48, 'D4'], [96, 48, 'E4'], [144, 48, 'F4']]);
+    expect(changeDuration(score, modul1, at(144), 96)).toEqual({ ok: false, error: 'does-not-fit' });
+    expect(changeDuration(score, modul1, at(0), 96)).toEqual({ ok: false, error: 'does-not-fit' });
   });
 
   it('fails if there is no note', () => {
@@ -211,7 +226,6 @@ group('changeDuration', () => {
 group('firstFreeTick', () => {
   it('is where the cursor goes when tapping a measure', () => {
     expect(firstFreeTick(place([[0, 48, 'C4']]).staves[0].measures[0])).toBe(48);
-    expect(firstFreeTick(place([[48, 48, 'C4']]).staves[0].measures[0])).toBe(0);
     expect(firstFreeTick(place([[0, 192, 'C4']]).staves[0].measures[0])).toBeNull();
   });
 });

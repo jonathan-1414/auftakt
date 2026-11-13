@@ -141,6 +141,10 @@ Regeln:
 - **Jeder Takt ist im Modell immer vollständig gefüllt.** Was keine Note ist, ist eine Pause
   mit `auto: true` (eine Lücke). Lücken werden **nicht gezeichnet**, der Platz im Takt bleibt
   leer. Die Takt-Prüfung kennt nur „voll“ (keine Lücke) und „nicht voll“.
+- **Noten rücken zusammen:** Die Ereignisse eines Takts stehen immer lückenlos ab dem
+  Taktanfang, wie Buchstaben in einem Wort. Freier Platz (Lücke) gibt es nur am Taktende.
+  So entsteht nie eine Pause, die man hört, aber nicht sieht. Gezielt gesetzte Pausen
+  (ab Modul 2) sind weitere Ereignisse in dieser Reihe.
 - Notiert wird **immer klingend**, transponierende Instrumente gibt es im Notenbild nicht.
 - Notennamen in der Oberfläche sind **deutsch**: c d e f g a h, B = H, Be-Vorzeichen auf h
   heißt b. Oktaven: c' … h' = 4. Oktave, c'' … = 5. Oktave.
@@ -183,27 +187,27 @@ const modul1: ModuleConfig = {
 
 **Noteneingabe** (immer Eingabemodus, kein Umschalten)
 - Leiste mit den Notenwerten Ganze, Halbe, Viertel, Achtel. Ein Wert ist immer gewählt.
-- Ein Eingabe-Cursor zeigt die Position, an der die nächste Note landet, und rückt nach jeder
-  Note weiter. In einem leeren Takt steht er am Taktanfang.
-- **Die Stelle wählt der Finger beim Aufsetzen:** über einer Note wird diese ersetzt, über
-  einer Lücke kommt die Note an den Anfang der Lücke. Danach ist die Stelle festgehalten, der
-  Finger kann zur Seite gleiten (damit er die Note nicht verdeckt).
+- Ein Eingabe-Cursor steht hinter der letzten Note des Takts (dort wird angehängt), in einem
+  leeren Takt am Taktanfang. Ist der Takt voll, springt er in den nächsten Takt.
+- **Die Stelle wählt der Finger beim Aufsetzen:** über einer Note wird diese ersetzt, im
+  freien Platz wird die Note hinten angehängt, egal wie weit rechts getippt wird. Danach ist
+  die Stelle festgehalten, der Finger kann zur Seite gleiten (damit er die Note nicht verdeckt).
 - Eine **Vorschau-Note** folgt der Höhe des Fingers (Linie oder Zwischenraum). Beim Loslassen
   wird die Note gesetzt.
 - **Beim Eingeben erklingt kein Ton** (Setzen, Ziehen, Ändern des Notenwerts). Klang gibt es
   in Modul 1 nur über „Abspielen“. Schüler.innen sollen die Noten lesen, nicht nach Gehör
   probieren.
-- **Überschreiben:** Eine neue Note ersetzt, was an dieser Stelle steht. Verkürzte Reste
-  werden zu Lücken. Passt der gewählte Wert an der gewählten Stelle nicht mehr in
-  den Takt, erscheint keine Vorschau und die Note wird nicht gesetzt (keine Haltebögen in
-  Modul 1). Die Leiste graut nichts vorab aus.
+- **Ersetzen:** Eine neue Note ersetzt die Note an dieser Stelle. Ist sie kürzer, rücken die
+  folgenden Noten nach links, ist sie länger, nach rechts. Passt danach nicht mehr alles in
+  den Takt, erscheint keine Vorschau und nichts ändert sich (keine Haltebögen in Modul 1,
+  es fallen nie Noten weg). Die Leiste graut nichts vorab aus.
 - Tonumfang c'–f''. Außerhalb wird keine Vorschau angezeigt. Hilfslinie nur beim c'.
 - Notenkopf antippen = auswählen (die Note erscheint in `--accent`). Eine ausgewählte Note
   kann nach oben und unten gezogen werden (Tonhöhe ändern, ohne Ton) und gelöscht
-  werden (wird zur Lücke).
+  werden (die folgenden Noten rücken nach links).
 - Beim Auswählen springt die Notenwert-Leiste auf den Wert der Note. Ein anderer Wert in der
-  Leiste ändert die ausgewählte Note (kürzer: Rest wird Lücke; länger: ersetzt, was folgt).
-  Passt der längere Wert nicht in den Takt, ändert sich nichts.
+  Leiste ändert die ausgewählte Note, die folgenden Noten rücken mit. Passt danach nicht mehr
+  alles in den Takt, ändert sich nichts.
 - Achtel werden automatisch nach Zählzeiten mit Balken verbunden.
 - **Takt-Prüfung** mit nur zwei Zuständen, damit Schüler.innen selbst überlegen, was noch
   passt: Unter einem vollen Takt steht ein Häkchen (ohne Text), unter einem nicht vollen Takt
