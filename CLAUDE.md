@@ -195,25 +195,30 @@ const modul1: ModuleConfig = {
 - Leiste mit den Notenwerten Ganze, Halbe, Viertel, Achtel. Ein Wert ist immer gewählt.
 - Ein Eingabe-Cursor steht hinter der letzten Note des Takts (dort wird angehängt), in einem
   leeren Takt am Taktanfang. Ist der Takt voll, springt er in den nächsten Takt.
-- **Die Stelle wählt der Finger beim Aufsetzen:** über einer Note wird diese ersetzt, im
-  freien Platz wird die Note hinten angehängt, egal wie weit rechts getippt wird. Danach ist
-  die Stelle festgehalten, der Finger kann zur Seite gleiten (damit er die Note nicht verdeckt).
+- **Noten werden nur dort gesetzt oder geändert, wo der Cursor steht.** Ein Tipp an eine
+  andere Stelle setzt nur den Cursor dorthin (ohne Vorschau, ohne Änderung). Stellen sind:
+  eine Note (Notenkopf oder ihre Spalte) oder der freie Platz eines Takts; dort wird hinten
+  angehängt, egal wie weit rechts getippt wird. Nach dem Setzen steht der Cursor hinter der
+  neuen Note, im selben Takt schreibt man also mit einem Tipp pro Note weiter.
+- Steht der Cursor im freien Platz, setzt ein Tipp dort die Note. Die Stelle ist beim
+  Aufsetzen festgehalten, der Finger kann zur Seite gleiten (damit er die Note nicht verdeckt).
 - Eine **Vorschau-Note** folgt der Höhe des Fingers (Linie oder Zwischenraum). Beim Loslassen
   wird die Note gesetzt.
 - **Beim Eingeben erklingt kein Ton** (Setzen, Ziehen, Ändern des Notenwerts). Klang gibt es
   in Modul 1 nur über „Abspielen“. Schüler.innen sollen die Noten lesen, nicht nach Gehör
   probieren.
-- **Ersetzen:** Eine neue Note ersetzt die Note an dieser Stelle. Ist sie kürzer, rücken die
-  folgenden Noten nach links, ist sie länger, nach rechts. Passt danach nicht mehr alles in
-  den Takt, erscheint keine Vorschau und nichts ändert sich (keine Haltebögen in Modul 1,
-  es fallen nie Noten weg). Die Leiste graut nichts vorab aus.
+- **Wert ändern:** Wird eine Note kürzer, rücken die folgenden Noten nach links, wird sie
+  länger, nach rechts. Passt danach nicht mehr alles in den Takt, ändert sich nichts (keine
+  Haltebögen in Modul 1, es fallen nie Noten weg). Ebenso erscheint keine Vorschau, wenn eine
+  neue Note nicht mehr in den Takt passt. Die Leiste graut nichts vorab aus.
 - Tonumfang c'–f''. Außerhalb wird keine Vorschau angezeigt. Hilfslinie nur beim c'.
-- Notenkopf antippen = auswählen (die Note erscheint in `--accent`). Eine ausgewählte Note
-  kann nach oben und unten gezogen werden (Tonhöhe ändern, ohne Ton) und gelöscht
-  werden (die folgenden Noten rücken nach links).
-- Beim Auswählen springt die Notenwert-Leiste auf den Wert der Note. Ein anderer Wert in der
-  Leiste ändert die ausgewählte Note, die folgenden Noten rücken mit. Passt danach nicht mehr
-  alles in den Takt, ändert sich nichts.
+- Steht der Cursor auf einer Note, ist sie ausgewählt (sie erscheint in `--accent`). Ein Tipp
+  auf sie oder ihre Spalte ändert die Tonhöhe: sie folgt dem Finger nach oben und unten
+  (ohne Ton). Eine ausgewählte Note kann gelöscht werden (die folgenden Noten rücken nach
+  links).
+- Kommt der Cursor auf eine Note, springt die Notenwert-Leiste auf den Wert der Note. Ein
+  anderer Wert in der Leiste ändert die ausgewählte Note, die folgenden Noten rücken mit.
+  Passt danach nicht mehr alles in den Takt, ändert sich nichts.
 - Achtel werden automatisch nach Zählzeiten mit Balken verbunden.
 - **Takt-Prüfung** mit nur zwei Zuständen, damit Schüler.innen selbst überlegen, was noch
   passt: Unter einem vollen Takt steht ein Häkchen (ohne Text), unter einem nicht vollen Takt

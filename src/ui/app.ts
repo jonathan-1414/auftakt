@@ -46,7 +46,6 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
   let score = loadScore(module) ?? createEmptyScore(module);
   let savedScore: Score | null = score;
   let cursor: Position = initialCursor(score);
-  let selection: Position | null = null;
   let duration = module.durations.includes(48) ? 48 : module.durations[0];
   let showNoteNames = false;
   let preview: { at: Position; pitch: Pitch } | null = null;
@@ -84,15 +83,14 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
       }
       const schedule = buildSchedule(score);
       if (schedule.notes.length === 0) return; // nothing to play
-      playedScore = score;
-      // While playing, only the sounding note is marked: no selection, no cursor.
-      selection = null;
+      playedScore = score; // while playing, only the sounding note is marked
       render();
       void player.play(schedule);
     },
     selectDuration(ticks) {
-      // With a note selected, the button changes that note's value
+      // With the cursor on a note, the button changes that note's value
       // (if the new value fits; otherwise nothing changes).
+      const selection = selectedNote();
       if (selection) {
         const result = changeDuration(score, module, selection, ticks);
         if (!result.ok) return;
@@ -108,17 +106,16 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
       // Undo is for notes only: the details (names, class, title) stay as they are.
       score = { ...previous.score, meta: score.meta };
       cursor = previous.cursor;
-      selection = null;
       render();
     },
     deleteSelection() {
+      const selection = selectedNote();
       if (!selection) return;
       const result = deleteNote(score, selection);
       if (!result.ok) return;
       history.push({ score, cursor });
       score = result.score;
       cursor = advanceCursor(score, selection); // behind the last note of that measure
-      selection = null;
       render();
     },
     async newScore() {
@@ -128,7 +125,6 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
       // Everything starts empty, also names, class and title.
       score = createEmptyScore(module);
       cursor = initialCursor(score);
-      selection = null;
       history.clear();
       render();
       await askForDetails('start');
@@ -186,14 +182,14 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
     layout = renderScore(scoreElement, shown, {
       showNoteNames,
       cursor: preview || playedScore ? null : cursor,
-      selection: preview || playedScore ? null : selection,
+      selection: preview || playedScore ? null : selectedNote(),
       preview: preview?.at ?? null,
       playing,
     });
     toolbar.update({
       duration,
       canUndo: history.canUndo(),
-      canDelete: selection !== null,
+      canDelete: selectedNote() !== null,
       playing: playedScore !== null,
     });
   }
@@ -206,6 +202,26 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
       start += event.ticks;
     }
     return null;
+  }
+
+  /** The note the cursor stands on (it is shown as selected), or null in free space. */
+  function selectedNote(): Position | null {
+    return noteTicksAt(cursor) !== null ? cursor : null;
+  }
+
+  function samePosition(a: Position, b: Position): boolean {
+    return a.staff === b.staff && a.measure === b.measure && a.tick === b.tick;
+  }
+
+  /** Moves the dragged note to the pitch under the finger. Returns whether anything changed. */
+  function changePitchTo(drag: Extract<Gesture, { kind: 'drag' }>, y: number): boolean {
+    const pitch = pitchAt(y);
+    if (!pitch) return false;
+    const result = changePitch(score, module, drag.at, pitch);
+    if (!result.ok || JSON.stringify(result.score) === JSON.stringify(score)) return false;
+    score = result.score;
+    drag.changed = true;
+    return true;
   }
 
   /** Pitch under the finger, or null outside the module's range. */
@@ -222,22 +238,29 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
       const hit = hitTest(layout, x, y);
       if (!hit) return;
       const before = { score, cursor };
+      // The spot under the finger: a note (its head or its column), or else the free
+      // space behind the last note of the measure.
+      const spot = positionForTap(score, cursor.staff, hit.measure, hit.noteTick ?? hit.columnTick);
 
-      // Touching a note selects it, puts the cursor there and lets it be dragged.
-      if (hit.noteTick !== null) {
-        selection = { staff: cursor.staff, measure: hit.measure, tick: hit.noteTick };
-        cursor = selection;
-        // The toolbar shows the value of the selected note.
-        duration = noteTicksAt(selection) ?? duration;
-        gesture = { kind: 'drag', at: selection, before, changed: false };
+      // Notes are only placed or changed where the cursor is. Touching another spot
+      // only moves the cursor there. On a note, the toolbar shows that note's value.
+      if (!samePosition(spot, cursor)) {
+        cursor = spot;
+        duration = noteTicksAt(cursor) ?? duration;
         render();
         return;
       }
 
-      // Touching elsewhere chooses the spot under the finger (a preview first).
-      // The spot is fixed now; moving the finger only changes the pitch.
-      cursor = positionForTap(score, cursor.staff, hit.measure, hit.columnTick);
-      selection = null;
+      // The cursor is on a note: it follows the finger up and down (changing its pitch).
+      if (noteTicksAt(cursor) !== null) {
+        gesture = { kind: 'drag', at: cursor, before, changed: false };
+        changePitchTo(gesture, y);
+        render();
+        return;
+      }
+
+      // The cursor is in the free space: a preview note follows the finger,
+      // it is placed when the finger is lifted.
       if (canPlace(score, module, cursor, duration)) {
         gesture = { kind: 'place', before };
         const pitch = pitchAt(y);
@@ -258,12 +281,7 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
         render();
         return;
       }
-      if (!pitch) return;
-      const result = changePitch(score, module, gesture.at, pitch);
-      if (!result.ok || JSON.stringify(result.score) === JSON.stringify(score)) return;
-      score = result.score;
-      gesture.changed = true;
-      render();
+      if (changePitchTo(gesture, y)) render();
     },
 
     up() {
@@ -275,7 +293,6 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
           history.push(done.before);
           score = result.score;
           cursor = advanceCursor(score, preview.at);
-          selection = null;
         }
       }
       if (done?.kind === 'drag' && done.changed) history.push(done.before);
