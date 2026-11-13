@@ -138,8 +138,9 @@ interface Score {
 
 Regeln:
 
-- **Jeder Takt ist immer vollständig gefüllt.** Was keine Note ist, ist eine Pause mit
-  `auto: true`. Die Takt-Prüfung („fehlt noch …“) ergibt sich aus der Summe dieser Pausen.
+- **Jeder Takt ist im Modell immer vollständig gefüllt.** Was keine Note ist, ist eine Pause
+  mit `auto: true` (eine Lücke). Lücken werden **nicht gezeichnet**, der Platz im Takt bleibt
+  leer. Die Takt-Prüfung kennt nur „voll“ (keine Lücke) und „nicht voll“.
 - Notiert wird **immer klingend**, transponierende Instrumente gibt es im Notenbild nicht.
 - Notennamen in der Oberfläche sind **deutsch**: c d e f g a h, B = H, Be-Vorzeichen auf h
   heißt b. Oktaven: c' … h' = 4. Oktave, c'' … = 5. Oktave.
@@ -182,27 +183,31 @@ const modul1: ModuleConfig = {
 
 **Noteneingabe** (immer Eingabemodus, kein Umschalten)
 - Leiste mit den Notenwerten Ganze, Halbe, Viertel, Achtel. Ein Wert ist immer gewählt.
-- Ein Eingabe-Cursor zeigt die Position, an der die nächste Note landet. Tippen in einen Takt
-  setzt den Cursor an die erste freie Stelle dieses Takts.
-- Finger auf das Notensystem: Eine **Vorschau-Note** folgt der Höhe des Fingers (Linie oder
-  Zwischenraum). Beim Loslassen wird die Note gesetzt und erklingt einmal, der Cursor rückt
-  weiter.
+- Ein Eingabe-Cursor zeigt die Position, an der die nächste Note landet, und rückt nach jeder
+  Note weiter. In einem leeren Takt steht er am Taktanfang.
+- **Die Stelle wählt der Finger beim Aufsetzen:** über einer Note wird diese ersetzt, über
+  einer Lücke kommt die Note an den Anfang der Lücke. Danach ist die Stelle festgehalten, der
+  Finger kann zur Seite gleiten (damit er die Note nicht verdeckt).
+- Eine **Vorschau-Note** folgt der Höhe des Fingers (Linie oder Zwischenraum). Beim Loslassen
+  wird die Note gesetzt und erklingt einmal.
 - **Überschreiben:** Eine neue Note ersetzt, was an dieser Stelle steht. Verkürzte Reste
-  werden zu automatischen Pausen. Passt der gewählte Wert nicht mehr in den Rest des Takts,
+  werden zu Lücken. Passt der gewählte Wert nicht mehr in den Rest des Takts,
   wird er in der Leiste ausgegraut und die Note nicht gesetzt (keine Haltebögen in Modul 1).
 - Tonumfang c'–f''. Außerhalb wird keine Vorschau angezeigt. Hilfslinie nur beim c'.
-- Note antippen = auswählen. Eine ausgewählte Note kann nach oben und unten gezogen werden
-  (Tonhöhe ändern, erklingt dabei) und gelöscht werden (wird zur automatischen Pause).
+- Notenkopf antippen = auswählen (die Note erscheint in `--accent`). Eine ausgewählte Note
+  kann nach oben und unten gezogen werden (Tonhöhe ändern, erklingt dabei) und gelöscht
+  werden (wird zur Lücke).
 - Achtel werden automatisch nach Zählzeiten mit Balken verbunden.
-- **Takt-Prüfung:** Unter jedem Takt steht „voll“ oder „fehlt noch: …“ (als Notenwert, z. B.
-  „fehlt noch: 1 Viertel“).
+- **Takt-Prüfung** mit nur zwei Zuständen, damit Schüler.innen selbst überlegen, was noch
+  passt: Unter einem vollen Takt steht ein Häkchen mit „voll“, unter einem nicht vollen Takt
+  ein leerer, gestrichelter Kreis. Ein leerer Takt ist ganz leer (keine Ganztaktpause).
 - **Rückgängig** (mehrere Schritte), kein Wiederholen.
 - Schalter **Notennamen** blendet deutsche Notennamen in oder unter den Notenköpfen ein und aus.
 
 **Wiedergabe**
 - Play/Stop-Button, Tempo fest ♩ = 90, Klavierklang.
 - Die klingende Note leuchtet auf (mitlaufende Markierung, `Tone.Draw`).
-- Automatische Pausen werden als Pausen gespielt.
+- Lücken klingen als Pausen (Stille).
 
 **Ansicht**
 - Groß und für Touch optimiert (Tippflächen mindestens 44 × 44 pt), Pinch-Zoom.
@@ -220,7 +225,8 @@ const modul1: ModuleConfig = {
   - Ein Format gewählt → diese Datei. Beide gewählt → eine ZIP-Datei mit gleichem
     Namensschema (`7a_Mia-Ben_2026-11-11.zip`).
   - Weitergabe über das Teilen-Menü des Geräts (AirDrop usw.), sonst Download.
-- Das PDF enthält oben Titel, Name(n), Klasse und Datum, darunter das Notenbild.
+- Das PDF enthält oben Titel, Name(n), Klasse und Datum, darunter das Notenbild (ohne
+  Takt-Prüfung).
 
 **Sonstiges**
 - Info-Seite mit Lizenzhinweisen (Samples CC BY 3.0, verwendete Bibliotheken).

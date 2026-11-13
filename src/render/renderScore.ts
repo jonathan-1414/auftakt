@@ -1,5 +1,5 @@
 import { BarlineType, Beam, Formatter, Fraction, Renderer, Stave, StaveNote, Voice } from 'vexflow/bravura';
-import { describeStatus, measureStatus } from '../model/check';
+import { isMeasureFull } from '../model/check';
 import { measureLength, placeEvents } from '../model/measure';
 import { germanNoteName } from '../model/noteName';
 import type { Position, Score, ScoreEvent, Staff } from '../model/types';
@@ -17,6 +17,9 @@ const HEIGHT = 160;
 const MARGIN = 10;
 const STAVE_Y = 30;
 const NAME_Y = 150;
+
+const TICK_ICON =
+  '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 12.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 const DURATION_CODES: Record<number, string> = { 192: 'w', 96: 'h', 48: 'q', 24: '8', 12: '16' };
 
@@ -40,6 +43,9 @@ function toStaveNote(event: ScoreEvent, staff: Staff, wholeMeasure: boolean): St
     const key = event.ticks === 192 ? 'd/5' : 'b/4';
     const rest = new StaveNote({ keys: [key], duration: durationCode(event.ticks) + 'r', clef: staff.clef });
     if (wholeMeasure) rest.setCenterAlignment(true);
+    // Gaps (automatic rests) are not shown: they keep their space, but stay empty.
+    // Written as an inline style, so it also holds when the SVG is copied (PDF).
+    if (event.auto) rest.setStyle({ fillStyle: 'none', strokeStyle: 'none' });
     return rest;
   }
   const { step, octave } = event.pitch;
@@ -169,14 +175,16 @@ export function renderScore(container: HTMLElement, score: Score, options: Rende
       ctx.closeGroup();
     }
 
-    // Measure check below the measure, as normal text so that it can wrap.
-    const status = measureStatus(measure);
+    // Measure check below the measure: a tick with "voll", or an empty dashed circle.
+    const full = isMeasureFull(measure);
     const left = i === 0 ? stave.getNoteStartX() : x;
     const cell = document.createElement('div');
-    cell.className = status.full ? 'status full' : 'status missing';
+    cell.className = full ? 'status full' : 'status missing';
     cell.style.left = `${(left / WIDTH) * 100}%`;
     cell.style.width = `${((x + width - left) / WIDTH) * 100}%`;
-    cell.textContent = describeStatus(status);
+    cell.innerHTML = full
+      ? `<span class="status-mark" aria-hidden="true">${TICK_ICON}</span><span>voll</span>`
+      : `<span class="status-mark" role="img" aria-label="noch nicht voll"></span>`;
     statusRow.append(cell);
 
     x += width;

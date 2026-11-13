@@ -7,6 +7,7 @@
   --surface: #ffffff;
   --text: #2b2520;
   --muted: #8c8178; /* only for borders and lines: too light for text (WCAG AA) */
+  --measure-full: var(--accent); /* tick below a full measure */
   --radius: 12px;
   --font: system-ui, sans-serif;
 }
@@ -125,14 +126,28 @@ body {
   top: 0;
   box-sizing: border-box;
   padding: 0 6px;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
   line-height: 1.3;
-}
-.status.full {
   color: var(--text);
 }
-.status.missing {
-  color: var(--accent-text);
+.status-mark {
+  box-sizing: border-box;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.status.full .status-mark {
+  background: var(--measure-full);
+  color: var(--text);
+}
+.status.missing .status-mark {
+  border: 2px dashed var(--muted);
 }
 
 /* States in the score: cursor, selected note, preview note */
