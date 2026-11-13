@@ -242,7 +242,7 @@ const modul1: ModuleConfig = {
   Stand geladen (eigener Speicherplatz pro Modul). Gespeicherte Daten werden vor dem Laden
   geprüft; ungültige werden ignoriert. Ohne `localStorage` läuft die App ohne Speichern.
 - Button **Abgeben** (Teilen-Symbol oben rechts): Auswahl der Formate **Auftakt-Datei** und
-  **PDF** (beide vorausgewählt). Kein Warnhinweis bei nicht vollen Takten.
+  **PDF** (nichts vorausgewählt, man wählt bewusst). Kein Warnhinweis bei nicht vollen Takten.
   - Dateiname: `[klasse]_[name(n)]_[jjjj-mm-tt]`, z. B. `7a_Mia-Ben_2026-11-11.pdf`.
   - Klasse und Namen kommen aus `meta`, das Datum ist der Tag der Abgabe.
   - Mehrere Namen mit `-` verbinden. Leerzeichen innerhalb eines Namens entfallen

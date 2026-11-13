@@ -230,6 +230,9 @@ body {
   color: var(--text);
   font-family: var(--font);
 }
+.dialog:focus {
+  outline: none; /* the dialog itself only takes the focus so that no field is highlighted */
+}
 .dialog::backdrop {
   background: rgba(43, 37, 32, 0.35); /* --text, half see-through */
 }

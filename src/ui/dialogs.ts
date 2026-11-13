@@ -153,7 +153,7 @@ export function confirm(text: string, confirmLabel: string): Promise<boolean> {
 export type HandInFormat = 'auftakt' | 'pdf';
 
 /**
- * The hand-in dialog: choose the formats (both chosen at first), then share.
+ * The hand-in dialog: choose the formats (none chosen at first), then share.
  * The file is prepared as soon as the choice changes, so that sharing can start
  * directly from the tap (browsers only allow the share menu right after a touch).
  */
@@ -170,7 +170,7 @@ export function askHandIn(options: {
       ['pdf', 'PDF'],
     ];
     const boxes = choices.map(([format, label]) => {
-      const input = el('input', { type: 'checkbox', checked: true, value: format });
+      const input = el('input', { type: 'checkbox', checked: false, value: format });
       return { format, input, row: el('label', { className: 'check-row' }, input, label) };
     });
     const nameLine = el('p', { className: 'dialog-text file-name' });
@@ -193,14 +193,13 @@ export function askHandIn(options: {
       const formats = boxes.filter((b) => b.input.checked).map((b) => b.format);
       file = null;
       const mine = ++request;
+      hint.textContent = '';
       if (formats.length === 0) {
-        nameLine.textContent = '';
-        hint.textContent = 'Bitte mindestens ein Format wählen.';
+        nameLine.textContent = 'Wähle mindestens ein Format.';
         send.textContent = 'Teilen';
         send.disabled = true;
         return;
       }
-      hint.textContent = '';
       nameLine.textContent = `Datei: ${options.fileName(formats)}`;
       send.textContent = 'Wird vorbereitet …';
       send.disabled = true;
@@ -219,6 +218,10 @@ export function askHandIn(options: {
     boxes.forEach((b) => b.input.addEventListener('change', () => void update()));
 
     const close = showDialog(dialog, () => done());
+    // Focus the dialog itself, not the first checkbox: otherwise Safari draws a focus ring
+    // around it, which looks as if it had been chosen.
+    dialog.tabIndex = -1;
+    dialog.focus();
     function done(): void {
       request++;
       close();
