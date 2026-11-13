@@ -189,14 +189,17 @@ const modul1: ModuleConfig = {
   einer Lücke kommt die Note an den Anfang der Lücke. Danach ist die Stelle festgehalten, der
   Finger kann zur Seite gleiten (damit er die Note nicht verdeckt).
 - Eine **Vorschau-Note** folgt der Höhe des Fingers (Linie oder Zwischenraum). Beim Loslassen
-  wird die Note gesetzt und erklingt einmal.
+  wird die Note gesetzt.
+- **Beim Eingeben erklingt kein Ton** (Setzen, Ziehen, Ändern des Notenwerts). Klang gibt es
+  in Modul 1 nur über „Abspielen“. Schüler.innen sollen die Noten lesen, nicht nach Gehör
+  probieren.
 - **Überschreiben:** Eine neue Note ersetzt, was an dieser Stelle steht. Verkürzte Reste
   werden zu Lücken. Passt der gewählte Wert an der gewählten Stelle nicht mehr in
   den Takt, erscheint keine Vorschau und die Note wird nicht gesetzt (keine Haltebögen in
   Modul 1). Die Leiste graut nichts vorab aus.
 - Tonumfang c'–f''. Außerhalb wird keine Vorschau angezeigt. Hilfslinie nur beim c'.
 - Notenkopf antippen = auswählen (die Note erscheint in `--accent`). Eine ausgewählte Note
-  kann nach oben und unten gezogen werden (Tonhöhe ändern, erklingt dabei) und gelöscht
+  kann nach oben und unten gezogen werden (Tonhöhe ändern, ohne Ton) und gelöscht
   werden (wird zur Lücke).
 - Beim Auswählen springt die Notenwert-Leiste auf den Wert der Note. Ein anderer Wert in der
   Leiste ändert die ausgewählte Note (kürzer: Rest wird Lücke; länger: ersetzt, was folgt).
@@ -284,7 +287,7 @@ Echtzeit-Einspielen, MIDI-Export, Konten, Server, Mailversand.
 3. **Darstellung:** Modell → VexFlow, 4 Takte, automatische Balken, Takt-Prüfung, Notennamen.
 4. **Eingabe:** Notenwert-Leiste, Cursor, Vorschau-Note, Setzen, Auswählen, Ziehen, Löschen,
    Rückgängig. Zuerst mit Maus testen, dann auf dem iPad.
-5. **Wiedergabe:** Klavier-Sampler, Play/Stop, mitlaufende Markierung, Ton beim Setzen.
+5. **Wiedergabe:** Klavier-Sampler, Play/Stop, mitlaufende Markierung (kein Ton beim Setzen).
 6. **Startdialog und Speichern:** Pflichtfelder, automatisches Speichern, „Neu“.
 7. **Abgabe:** Dateinamen (mit Tests), Auftakt-Datei, PDF, ZIP, Teilen.
 8. **Feinschliff auf dem iPad:** Tippflächen, Zoom, Querformat und Hochformat, Info-Seite.
