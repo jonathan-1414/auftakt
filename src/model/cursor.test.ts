@@ -1,18 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { modul1 } from '../modules/modul1';
 import { p } from '../test/helpers';
-import { advanceCursor, cursorForTap } from './cursor';
+import { advanceCursor, positionForTap } from './cursor';
 import { setNote } from './edit';
 import { createEmptyScore } from './score';
 import type { Score } from './types';
 
 const at = (measure: number, tick: number) => ({ staff: 0, measure, tick });
-
-function fill(score: Score, measure: number): Score {
-  const result = setNote(score, modul1, at(measure, 0), p('C4'), 192);
-  if (!result.ok) throw new Error(result.error);
-  return result.score;
-}
 
 describe('advanceCursor', () => {
   it('moves on by the length of the note', () => {
@@ -34,17 +28,31 @@ describe('advanceCursor', () => {
   });
 });
 
-describe('cursorForTap', () => {
-  it("places at the cursor in the cursor's measure", () => {
-    expect(cursorForTap(createEmptyScore(modul1), at(0, 48), 0)).toEqual({ cursor: at(0, 48), place: true });
+describe('positionForTap', () => {
+  // Measure 0: quarter C4, then (auto rests) quarter, half → note at 0, gap 48..192.
+  function withQuarter(): Score {
+    const result = setNote(createEmptyScore(modul1), modul1, at(0, 0), p('C4'), 48);
+    if (!result.ok) throw new Error(result.error);
+    return result.score;
+  }
+
+  it('goes to a note to replace it', () => {
+    expect(positionForTap(withQuarter(), 0, 0, 0)).toEqual(at(0, 0));
   });
 
-  it('jumps to the first free spot of another measure', () => {
-    expect(cursorForTap(createEmptyScore(modul1), at(0, 48), 2)).toEqual({ cursor: at(2, 0), place: true });
+  it('goes to the start of the gap when a rest is touched', () => {
+    expect(positionForTap(withQuarter(), 0, 0, 48)).toEqual(at(0, 48));
+    expect(positionForTap(withQuarter(), 0, 0, 96)).toEqual(at(0, 48));
   });
 
-  it('places nothing in a full measure and puts the cursor at its end', () => {
-    const score = fill(createEmptyScore(modul1), 2);
-    expect(cursorForTap(score, at(0, 0), 2)).toEqual({ cursor: at(2, 192), place: false });
+  it('goes to the start of an empty measure', () => {
+    expect(positionForTap(createEmptyScore(modul1), 0, 2, 0)).toEqual(at(2, 0));
+  });
+
+  it('does not go back past a note', () => {
+    const second = setNote(withQuarter(), modul1, at(0, 96), p('D4'), 48);
+    if (!second.ok) throw new Error();
+    // 0 note, 48 rest, 96 note, 144 rest
+    expect(positionForTap(second.score, 0, 0, 144)).toEqual(at(0, 144));
   });
 });

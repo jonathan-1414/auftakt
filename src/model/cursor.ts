@@ -1,4 +1,4 @@
-import { firstFreeTick, measureLength } from './measure';
+import { firstFreeTick, isOccupant, measureLength, placeEvents } from './measure';
 import type { Position, Score } from './types';
 
 /** Where the cursor goes after a note of `ticks` length was placed at `at`. */
@@ -12,19 +12,14 @@ export function advanceCursor(score: Score, at: Position, ticks: number): Positi
 }
 
 /**
- * Tapping into a measure. In the cursor's measure the note goes to the cursor.
- * In another measure the cursor first jumps to the first free spot there;
- * if that measure is full, the cursor goes to its end and no note is placed.
+ * Where a note goes when the finger touches the column of the event that starts at `tick`.
+ * On a note: at that note (it gets replaced). On an automatic rest: at the start of
+ * the gap that rest belongs to, so measures fill from left to right without holes.
  */
-export function cursorForTap(
-  score: Score,
-  cursor: Position,
-  measure: number,
-): { cursor: Position; place: boolean } {
-  if (measure === cursor.measure) return { cursor, place: true };
-  const free = firstFreeTick(score.staves[cursor.staff].measures[measure]);
-  if (free === null) {
-    return { cursor: { staff: cursor.staff, measure, tick: measureLength(score.timeSignature) }, place: false };
-  }
-  return { cursor: { staff: cursor.staff, measure, tick: free }, place: true };
+export function positionForTap(score: Score, staff: number, measure: number, tick: number): Position {
+  const placed = placeEvents(score.staves[staff].measures[measure]);
+  let index = placed.findIndex((p) => p.start === tick);
+  if (index < 0) return { staff, measure, tick };
+  while (index > 0 && !isOccupant(placed[index].event) && !isOccupant(placed[index - 1].event)) index--;
+  return { staff, measure, tick: placed[index].start };
 }

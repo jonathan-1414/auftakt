@@ -1,9 +1,11 @@
-import type { ScoreLayout } from '../render/layout';
+import type { EventLayout, ScoreLayout } from '../render/layout';
 
 export interface Hit {
   measure: number;
-  /** Start tick of the note that was touched, if a note was touched. */
+  /** Start tick of the note that was touched, if a note head was touched. */
   noteTick: number | null;
+  /** Start tick of the note or rest whose column is under the finger (nearest head). */
+  columnTick: number;
 }
 
 /** How far around a note head a touch still counts as "on the note" (drawing units). */
@@ -27,7 +29,20 @@ export function hitTest(layout: ScoreLayout, x: number, y: number): Hit | null {
       x <= e.headRight + NOTE_MARGIN_X &&
       Math.abs(y - e.y) <= layout.lineSpacing * NOTE_MARGIN_Y_SPACES,
   );
-  return { measure: index, noteTick: note ? note.tick : null };
+  return { measure: index, noteTick: note ? note.tick : null, columnTick: columnAt(measure.events, x) };
+}
+
+/** The event whose head is horizontally closest to x; columns meet halfway between heads. */
+function columnAt(events: EventLayout[], x: number): number {
+  let best = events[0];
+  for (const e of events) {
+    if (Math.abs(x - center(e)) < Math.abs(x - center(best))) best = e;
+  }
+  return best ? best.tick : 0;
+}
+
+function center(e: EventLayout): number {
+  return (e.headLeft + e.headRight) / 2;
 }
 
 /** Line or space under the finger, counted from the top line (0 = top line, 1 = space below, …). */

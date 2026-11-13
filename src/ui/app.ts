@@ -1,4 +1,4 @@
-import { advanceCursor, cursorForTap } from '../model/cursor';
+import { advanceCursor, positionForTap } from '../model/cursor';
 import { canPlace, changePitch, deleteNote, setNote } from '../model/edit';
 import { History } from '../model/history';
 import { isInRange, pitchAtStaffPosition } from '../model/pitch';
@@ -112,11 +112,11 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
         return;
       }
 
-      // Touching elsewhere places a note at the cursor (a preview first).
-      const tap = cursorForTap(score, cursor, hit.measure);
-      cursor = tap.cursor;
-      if (hit.measure !== before.cursor.measure) selection = null;
-      if (tap.place && canPlace(score, module, cursor, duration)) {
+      // Touching elsewhere chooses the spot under the finger (a preview first).
+      // The spot is fixed now; moving the finger only changes the pitch.
+      cursor = positionForTap(score, cursor.staff, hit.measure, hit.columnTick);
+      selection = null;
+      if (canPlace(score, module, cursor, duration)) {
         gesture = { kind: 'place', before };
         const pitch = pitchAt(y);
         preview = pitch ? { at: cursor, pitch } : null;
