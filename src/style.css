@@ -196,3 +196,92 @@ body {
 #score .vf-cursor rect {
   stroke: none;
 }
+
+/* Dialogs (start dialog, questions) */
+.dialog {
+  width: min(28rem, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 20px 24px;
+  border: 1px solid var(--muted);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font);
+}
+.dialog::backdrop {
+  background: rgba(43, 37, 32, 0.35); /* --text, half see-through */
+}
+.dialog h2 {
+  margin: 0 0 4px;
+  font-size: 1.3rem;
+}
+.dialog-text {
+  margin: 0 0 16px;
+  line-height: 1.4;
+}
+.dialog .field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 0;
+  border: none;
+}
+.dialog legend,
+.dialog label {
+  padding: 0;
+  font-weight: 600;
+}
+.dialog input {
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1px solid var(--muted);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 1rem; /* at least 16px, otherwise iPad Safari zooms in */
+}
+.dialog input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.name-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.name-row {
+  display: flex;
+  gap: 8px;
+}
+.name-row input {
+  flex: 1;
+  min-width: 0;
+}
+.dialog .field > .tool.small {
+  align-self: flex-start;
+}
+.dialog-error {
+  min-height: 1.4em;
+  margin: 0 0 8px;
+  color: var(--accent-text);
+}
+.dialog-error:empty {
+  min-height: 0;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.tool.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+[hidden] {
+  display: none !important;
+}

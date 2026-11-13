@@ -180,10 +180,13 @@ const modul1: ModuleConfig = {
 
 **Partitur**
 - Beim Start ein Dialog mit Pflichtfeldern **Name(n)** (eine oder mehrere Personen) und
-  **Klasse**, Titel optional. Gespeichert in `meta`, später über ein Info-Symbol änderbar.
+  **Klasse**, Titel optional (bis zu 6 Namensfelder, „+ Weitere Person“). Gespeichert in
+  `meta`, später über den Button „ⓘ Angaben“ änderbar. Der Startdialog lässt sich nicht
+  wegklicken. „Rückgängig“ betrifft nur Noten, nicht die Angaben.
 - Eine Notenzeile, Violinschlüssel, C-Dur, 4/4-Takt, genau 4 Takte in einer Zeile,
   Schlussstrich automatisch, keine Taktnummern.
-- Button „Neu“ (mit Rückfrage) beginnt eine leere Partitur.
+- Button „Neu“ (mit Rückfrage) beginnt eine leere Partitur. Danach erscheint der Startdialog,
+  Namen und Klasse sind als Vorschlag eingetragen, der Titel ist leer.
 
 **Noteneingabe** (immer Eingabemodus, kein Umschalten)
 - Leiste mit den Notenwerten Ganze, Halbe, Viertel, Achtel. Ein Wert ist immer gewählt.
@@ -233,7 +236,8 @@ const modul1: ModuleConfig = {
 
 **Speichern und Abgabe**
 - Automatisches Speichern im Browser nach jeder Änderung, beim Öffnen wird der letzte
-  Stand geladen.
+  Stand geladen (eigener Speicherplatz pro Modul). Gespeicherte Daten werden vor dem Laden
+  geprüft; ungültige werden ignoriert. Ohne `localStorage` läuft die App ohne Speichern.
 - Button **Abgeben**: Auswahl der Formate **Auftakt-Datei** und **PDF** (beide vorausgewählt).
   - Dateiname: `[klasse]_[name(n)]_[jjjj-mm-tt]`, z. B. `7a_Mia-Ben_2026-11-11.pdf`.
   - Klasse und Namen kommen aus `meta`, das Datum ist der Tag der Abgabe.

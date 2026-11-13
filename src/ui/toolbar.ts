@@ -28,6 +28,8 @@ export interface ToolbarActions {
   undo(): void;
   deleteSelection(): void;
   showNoteNames(): void;
+  newScore(): void;
+  editDetails(): void;
 }
 
 function button(label: string, onClick: () => void, glyph?: string): HTMLButtonElement {
@@ -84,7 +86,11 @@ export function createToolbar(
   namesButton.prepend(namesBar);
   actionGroup.append(undoButton, deleteButton, namesButton);
 
-  container.append(durationGroup, playGroup, actionGroup);
+  const scoreGroup = document.createElement('div');
+  scoreGroup.className = 'tool-group';
+  scoreGroup.append(button('Neu', actions.newScore, '+'), button('Angaben', actions.editDetails, 'ⓘ'));
+
+  container.append(durationGroup, playGroup, actionGroup, scoreGroup);
 
   return {
     update(state) {

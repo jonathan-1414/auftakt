@@ -26,3 +26,13 @@ export function positionForTap(score: Score, staff: number, measure: number, tic
   if (onNote) return { staff, measure, tick };
   return { staff, measure, tick: firstFreeTick(events) ?? measureLength(score.timeSignature) };
 }
+
+/** Cursor when a score is opened: behind the last note of the first measure that is not full. */
+export function initialCursor(score: Score, staff = 0): Position {
+  const measures = score.staves[staff].measures;
+  for (let measure = 0; measure < measures.length; measure++) {
+    const free = firstFreeTick(measures[measure]);
+    if (free !== null) return { staff, measure, tick: free };
+  }
+  return { staff, measure: measures.length - 1, tick: measureLength(score.timeSignature) };
+}

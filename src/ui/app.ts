@@ -1,4 +1,5 @@
-import { advanceCursor, positionForTap } from '../model/cursor';
+import { advanceCursor, initialCursor, positionForTap } from '../model/cursor';
+import { isMetaComplete } from '../model/meta';
 import { canPlace, changeDuration, changePitch, deleteNote, setNote } from '../model/edit';
 import { History } from '../model/history';
 import { isInRange, pitchAtStaffPosition } from '../model/pitch';
@@ -11,6 +12,8 @@ import type { ScoreLayout } from '../render/layout';
 import { renderScore } from '../render/renderScore';
 import { createPlayer } from '../playback/player';
 import { buildSchedule } from '../playback/schedule';
+import { loadScore, saveScore } from '../storage/autosave';
+import { askForMeta, confirm } from './dialogs';
 import { createTimedReveal } from './timedReveal';
 import { createToolbar } from './toolbar';
 
@@ -34,8 +37,10 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
   `;
   const scoreElement = root.querySelector<HTMLDivElement>('#score')!;
 
-  let score = createEmptyScore(module);
-  let cursor: Position = { staff: 0, measure: 0, tick: 0 };
+  // The last state is loaded from the browser; every change is saved right away.
+  let score = loadScore(module) ?? createEmptyScore(module);
+  let savedScore: Score | null = score;
+  let cursor: Position = initialCursor(score);
   let selection: Position | null = null;
   let duration = module.durations.includes(48) ? 48 : module.durations[0];
   let showNoteNames = false;
@@ -92,7 +97,8 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
     undo() {
       const previous = history.undo();
       if (!previous) return;
-      score = previous.score;
+      // Undo is for notes only: the details (names, class, title) stay as they are.
+      score = { ...previous.score, meta: score.meta };
       cursor = previous.cursor;
       selection = null;
       render();
@@ -107,6 +113,21 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
       selection = null;
       render();
     },
+    async newScore() {
+      const yes = await confirm('Neue Partitur beginnen? Alle Noten dieser Partitur werden gelöscht.', 'Neu beginnen');
+      if (!yes) return;
+      player.stop();
+      // Names and class are kept as a suggestion, the title starts empty.
+      score = { ...createEmptyScore(module), meta: { ...score.meta, title: '' } };
+      cursor = initialCursor(score);
+      selection = null;
+      history.clear();
+      render();
+      await askForDetails('start');
+    },
+    editDetails() {
+      void askForDetails('edit');
+    },
     showNoteNames() {
       noteNames.start();
     },
@@ -120,7 +141,19 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
     render();
   });
 
+  /** Start dialog (required) or changing the details later. */
+  async function askForDetails(mode: 'start' | 'edit'): Promise<void> {
+    const meta = await askForMeta(mode, score.meta);
+    if (!meta) return;
+    score = { ...score, meta };
+    render();
+  }
+
   function render(): void {
+    if (score !== savedScore) {
+      saveScore(module, score);
+      savedScore = score;
+    }
     if (playedScore && playedScore !== score) {
       playedScore = null;
       player.stop();
@@ -239,4 +272,5 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
   });
 
   render();
+  if (!isMetaComplete(score.meta)) void askForDetails('start');
 }

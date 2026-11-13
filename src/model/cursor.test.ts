@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { modul1 } from '../modules/modul1';
 import { p } from '../test/helpers';
-import { advanceCursor, positionForTap } from './cursor';
+import { advanceCursor, initialCursor, positionForTap } from './cursor';
 import { setNote } from './edit';
 import { createEmptyScore } from './score';
 import type { Score } from './types';
@@ -66,5 +66,21 @@ describe('positionForTap', () => {
     const full = setNote(createEmptyScore(modul1), modul1, at(1, 0), p('C4'), 192);
     if (!full.ok) throw new Error();
     expect(positionForTap(full.score, 0, 1, 0)).toEqual(at(1, 0)); // the note itself
+  });
+});
+
+describe('initialCursor', () => {
+  it('starts at the beginning of an empty score', () => {
+    expect(initialCursor(createEmptyScore(modul1))).toEqual(at(0, 0));
+  });
+
+  it('goes behind the last note of the first measure that is not full', () => {
+    let score = createEmptyScore(modul1);
+    for (const [measure, tick, ticks] of [[0, 0, 192], [1, 0, 96]]) {
+      const result = setNote(score, modul1, at(measure, tick), p('C4'), ticks);
+      if (!result.ok) throw new Error();
+      score = result.score;
+    }
+    expect(initialCursor(score)).toEqual(at(1, 96));
   });
 });
