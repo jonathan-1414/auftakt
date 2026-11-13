@@ -200,7 +200,7 @@ const modul1: ModuleConfig = {
   die Stelle festgehalten, der Finger kann zur Seite gleiten (damit er die Note nicht verdeckt).
 - Eine **Vorschau-Note** folgt der Höhe des Fingers (Linie oder Zwischenraum). Beim Loslassen
   wird die Note gesetzt.
-- **Beim Eingeben erklingt kein Ton** (Setzen, Ziehen, Ändern des Notenwerts). Klang gibt es
+- **Beim Eingeben erklingt kein Ton** (Setzen, Ziehen, Ersetzen). Klang gibt es
   in Modul 1 nur über „Abspielen“. Schüler.innen sollen die Noten lesen, nicht nach Gehör
   probieren.
 - **Ersetzen:** Eine neue Note ersetzt die Note an dieser Stelle. Ist sie kürzer, rücken die
@@ -211,9 +211,14 @@ const modul1: ModuleConfig = {
 - Notenkopf antippen = auswählen (die Note erscheint in `--accent`). Eine ausgewählte Note
   kann nach oben und unten gezogen werden (Tonhöhe ändern, ohne Ton) und gelöscht
   werden (die folgenden Noten rücken nach links).
-- Beim Auswählen springt die Notenwert-Leiste auf den Wert der Note. Ein anderer Wert in der
-  Leiste ändert die ausgewählte Note, die folgenden Noten rücken mit. Passt danach nicht mehr
-  alles in den Takt, ändert sich nichts.
+- Ist eine Note ausgewählt, hebt Tippen ins Leere nur die Auswahl auf und setzt den Cursor
+  an diese Stelle, es entsteht noch keine Note. Erst der nächste Tipp setzt eine Note. Ohne
+  Auswahl setzt ein Tipp sofort eine Note (auch in einem anderen Takt).
+- Beim Auswählen springt die Notenwert-Leiste auf den Wert der Note. Die Leiste gilt **immer
+  nur für die nächste Note** und ändert nie eine vorhandene Note: Ein Wert in der Leiste hebt
+  die Auswahl auf, der Cursor springt hinter die letzte Note dieses Takts. Den Wert einer
+  Note ändert man durch Ersetzen (Wert wählen, in der Spalte der Note neben den Notenkopf
+  tippen).
 - Achtel werden automatisch nach Zählzeiten mit Balken verbunden.
 - **Takt-Prüfung** mit nur zwei Zuständen, damit Schüler.innen selbst überlegen, was noch
   passt: Unter einem vollen Takt steht ein Häkchen (ohne Text), unter einem nicht vollen Takt
