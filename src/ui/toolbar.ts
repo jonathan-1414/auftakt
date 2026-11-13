@@ -13,6 +13,7 @@ export interface ToolbarState {
   duration: number;
   canUndo: boolean;
   canDelete: boolean;
+  playing: boolean;
 }
 
 export interface Toolbar {
@@ -23,6 +24,7 @@ export interface Toolbar {
 
 export interface ToolbarActions {
   selectDuration(ticks: number): void;
+  togglePlay(): void;
   undo(): void;
   deleteSelection(): void;
   showNoteNames(): void;
@@ -62,6 +64,14 @@ export function createToolbar(
     return { ticks, b };
   });
 
+  const playGroup = document.createElement('div');
+  playGroup.className = 'tool-group';
+  const playButton = button('Abspielen', actions.togglePlay, '▶');
+  playButton.classList.add('play');
+  playGroup.append(playButton);
+  const playLabel = playButton.querySelector('span:not(.glyph)')!;
+  const playGlyph = playButton.querySelector('.glyph')!;
+
   const actionGroup = document.createElement('div');
   actionGroup.className = 'tool-group';
   const undoButton = button('Rückgängig', actions.undo, '↶');
@@ -74,7 +84,7 @@ export function createToolbar(
   namesButton.prepend(namesBar);
   actionGroup.append(undoButton, deleteButton, namesButton);
 
-  container.append(durationGroup, actionGroup);
+  container.append(durationGroup, playGroup, actionGroup);
 
   return {
     update(state) {
@@ -83,6 +93,9 @@ export function createToolbar(
       }
       undoButton.disabled = !state.canUndo;
       deleteButton.disabled = !state.canDelete;
+      playLabel.textContent = state.playing ? 'Stopp' : 'Abspielen';
+      playGlyph.textContent = state.playing ? '■' : '▶';
+      playButton.setAttribute('aria-pressed', String(state.playing));
     },
 
     setNoteNamesPhase(phase, durationMs) {

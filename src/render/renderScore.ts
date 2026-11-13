@@ -29,6 +29,8 @@ export interface RenderOptions {
   selection: Position | null;
   /** Position of a note that is only a preview (drawn half transparent). */
   preview: Position | null;
+  /** The note that sounds right now during playback (lights up). */
+  playing: Position | null;
 }
 
 function durationCode(ticks: number): string {
@@ -148,6 +150,7 @@ export function renderScore(container: HTMLElement, score: Score, options: Rende
       if (same(options.preview, staffIndex, i, start)) markNote(notes[j], 'preview');
       // Selected note: drawn in the accent colour, the staff lines stay visible.
       if (same(options.selection, staffIndex, i, start)) markNote(notes[j], 'selected');
+      if (same(options.playing, staffIndex, i, start)) markNote(notes[j], 'playing');
     });
 
     // Cursor: a line just before the spot where the next note will go.

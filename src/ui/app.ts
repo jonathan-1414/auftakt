@@ -9,6 +9,8 @@ import { hitTest, staffPositionAt } from '../input/hitTest';
 import { attachScoreInput } from '../input/scoreInput';
 import type { ScoreLayout } from '../render/layout';
 import { renderScore } from '../render/renderScore';
+import { createPlayer } from '../playback/player';
+import { buildSchedule } from '../playback/schedule';
 import { createTimedReveal } from './timedReveal';
 import { createToolbar } from './toolbar';
 
@@ -41,8 +43,40 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
   let gesture: Gesture | null = null;
   let layout: ScoreLayout | null = null;
   const history = new History<Snapshot>();
+  // Playback: plays a copy of the score; any change to the score stops it.
+  let playing: Position | null = null;
+  let playedScore: Score | null = null;
+  const player = createPlayer({
+    onNote(at) {
+      playing = at;
+      render();
+    },
+    onEnd() {
+      playing = null;
+      playedScore = null;
+      render();
+    },
+  });
+  // iOS allows sound only after a touch: unlock the audio on every early touch.
+  for (const type of ['pointerdown', 'pointerup', 'keydown'] as const) {
+    document.addEventListener(type, () => player.unlock(), { capture: true });
+  }
+
 
   const toolbar = createToolbar(root.querySelector('.toolbar')!, module.durations, {
+    togglePlay() {
+      if (player.isPlaying() || playedScore) {
+        player.stop();
+        playedScore = null;
+        render();
+        return;
+      }
+      const schedule = buildSchedule(score);
+      if (schedule.notes.length === 0) return; // nothing to play
+      playedScore = score;
+      render();
+      void player.play(schedule);
+    },
     selectDuration(ticks) {
       // With a note selected, the button changes that note's value
       // (if the new value fits; otherwise nothing changes).
@@ -87,6 +121,10 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
   });
 
   function render(): void {
+    if (playedScore && playedScore !== score) {
+      playedScore = null;
+      player.stop();
+    }
     let shown = score;
     if (preview) {
       const result = setNote(score, module, preview.at, preview.pitch, duration);
@@ -97,11 +135,13 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
       cursor: preview ? null : cursor,
       selection: preview ? null : selection,
       preview: preview?.at ?? null,
+      playing,
     });
     toolbar.update({
       duration,
       canUndo: history.canUndo(),
       canDelete: selection !== null,
+      playing: playedScore !== null,
     });
   }
 

@@ -1,0 +1,10 @@
+Piano samples (C4–F5, MP3)
+
+Source: tonejs-instruments by Nicholaus P. Brosowsky
+https://github.com/nbrosowsky/tonejs-instruments
+Original recordings: Versilian Studios Orchestra 2 (VSO2)
+
+License: Creative Commons Attribution 3.0 (CC BY 3.0)
+https://creativecommons.org/licenses/by/3.0/
+
+The files are used unchanged.

@@ -66,6 +66,12 @@ body {
   top: 4px;
 }
 
+.tool.play .glyph {
+  font-family: var(--font);
+  font-size: 14px;
+  top: 0;
+}
+
 .tool[aria-pressed='true'] {
   background: var(--accent);
   border-color: var(--accent);
@@ -174,11 +180,14 @@ body {
 #score .vf-cursor rect {
   fill: var(--accent);
 }
-/* Selected note: head and flag (font glyphs) are filled, the stem is a line. */
-#score .selected text {
+/* Selected note and the note sounding during playback: head and flag (font glyphs)
+   are filled, the stem is a line. */
+#score .selected text,
+#score .playing text {
   fill: var(--accent);
 }
-#score .selected path {
+#score .selected path,
+#score .playing path {
   stroke: var(--accent);
 }
 #score .preview {

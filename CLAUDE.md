@@ -218,6 +218,10 @@ const modul1: ModuleConfig = {
 - Play/Stop-Button, Tempo fest ♩ = 90, Klavierklang.
 - Die klingende Note leuchtet auf (mitlaufende Markierung, `Tone.Draw`).
 - Lücken klingen als Pausen (Stille).
+- Die Wiedergabe endet nach der letzten Note (leere Takte danach werden nicht abgewartet).
+  Eine Änderung am Notenbild hält sie an.
+- Klavier-Samples: nur c' bis f'' (11 MP3-Dateien) in `public/samples/piano/`, Herkunft und
+  Lizenz in `LICENSE.txt` daneben.
 
 **Ansicht**
 - Groß und für Touch optimiert (Tippflächen mindestens 44 × 44 pt), Pinch-Zoom.
