@@ -191,8 +191,9 @@ const modul1: ModuleConfig = {
 - Eine **Vorschau-Note** folgt der Höhe des Fingers (Linie oder Zwischenraum). Beim Loslassen
   wird die Note gesetzt und erklingt einmal.
 - **Überschreiben:** Eine neue Note ersetzt, was an dieser Stelle steht. Verkürzte Reste
-  werden zu Lücken. Passt der gewählte Wert nicht mehr in den Rest des Takts,
-  wird er in der Leiste ausgegraut und die Note nicht gesetzt (keine Haltebögen in Modul 1).
+  werden zu Lücken. Passt der gewählte Wert an der gewählten Stelle nicht mehr in
+  den Takt, erscheint keine Vorschau und die Note wird nicht gesetzt (keine Haltebögen in
+  Modul 1). Die Leiste graut nichts vorab aus.
 - Tonumfang c'–f''. Außerhalb wird keine Vorschau angezeigt. Hilfslinie nur beim c'.
 - Notenkopf antippen = auswählen (die Note erscheint in `--accent`). Eine ausgewählte Note
   kann nach oben und unten gezogen werden (Tonhöhe ändern, erklingt dabei) und gelöscht

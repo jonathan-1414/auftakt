@@ -10,8 +10,6 @@ const DURATION_GLYPHS: Record<number, string> = {
 
 export interface ToolbarState {
   duration: number;
-  /** Note values that fit at the cursor; the others are greyed out. */
-  fitting: number[];
   canUndo: boolean;
   canDelete: boolean;
   showNoteNames: boolean;
@@ -70,7 +68,6 @@ export function createToolbar(
   return (state) => {
     for (const { ticks, b } of durationButtons) {
       b.setAttribute('aria-pressed', String(ticks === state.duration));
-      b.classList.toggle('unavailable', !state.fitting.includes(ticks));
     }
     undoButton.disabled = !state.canUndo;
     deleteButton.disabled = !state.canDelete;

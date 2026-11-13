@@ -72,18 +72,11 @@ body {
 }
 
 /* Greyed out: does not fit into the rest of the measure, or nothing to do */
-.tool.unavailable,
 .tool:disabled {
   border-style: dashed;
   color: var(--muted);
   cursor: default;
 }
-.tool.unavailable[aria-pressed='true'] {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent-text);
-}
-
 .score-area {
   flex: 1;
   display: flex;

@@ -81,7 +81,6 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
     });
     updateToolbar({
       duration,
-      fitting: module.durations.filter((d) => canPlace(score, module, cursor, d)),
       canUndo: history.canUndo(),
       canDelete: selection !== null,
       showNoteNames,
