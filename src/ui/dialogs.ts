@@ -149,3 +149,87 @@ export function confirm(text: string, confirmLabel: string): Promise<boolean> {
     cancel.focus();
   });
 }
+
+export type HandInFormat = 'auftakt' | 'pdf';
+
+/**
+ * The hand-in dialog: choose the formats (both chosen at first), then share.
+ * The file is prepared as soon as the choice changes, so that sharing can start
+ * directly from the tap (browsers only allow the share menu right after a touch).
+ */
+export function askHandIn(options: {
+  fileName(formats: HandInFormat[]): string;
+  prepare(formats: HandInFormat[]): Promise<File>;
+  canShare(file: File): boolean;
+  deliver(file: File): Promise<void>;
+}): Promise<void> {
+  return new Promise((resolve) => {
+    const dialog = el('dialog', { className: 'dialog' });
+    const choices: Array<[HandInFormat, string]> = [
+      ['auftakt', 'Auftakt-Datei'],
+      ['pdf', 'PDF'],
+    ];
+    const boxes = choices.map(([format, label]) => {
+      const input = el('input', { type: 'checkbox', checked: true, value: format });
+      return { format, input, row: el('label', { className: 'check-row' }, input, label) };
+    });
+    const nameLine = el('p', { className: 'dialog-text file-name' });
+    const hint = el('p', { className: 'dialog-error' });
+    hint.setAttribute('role', 'alert');
+    const cancel = textButton('Abbrechen');
+    const send = el('button', { type: 'button', className: 'tool primary' });
+
+    dialog.append(
+      el('h2', { textContent: 'Abgeben' }),
+      el('fieldset', { className: 'field' }, el('legend', { textContent: 'Was möchtest du abgeben?' }), ...boxes.map((b) => b.row)),
+      nameLine,
+      hint,
+      el('div', { className: 'dialog-actions' }, cancel, send),
+    );
+
+    let file: File | null = null;
+    let request = 0;
+    async function update(): Promise<void> {
+      const formats = boxes.filter((b) => b.input.checked).map((b) => b.format);
+      file = null;
+      const mine = ++request;
+      if (formats.length === 0) {
+        nameLine.textContent = '';
+        hint.textContent = 'Bitte mindestens ein Format wählen.';
+        send.textContent = 'Teilen';
+        send.disabled = true;
+        return;
+      }
+      hint.textContent = '';
+      nameLine.textContent = `Datei: ${options.fileName(formats)}`;
+      send.textContent = 'Wird vorbereitet …';
+      send.disabled = true;
+      try {
+        const prepared = await options.prepare(formats);
+        if (mine !== request) return; // the choice changed in the meantime
+        file = prepared;
+        send.textContent = options.canShare(prepared) ? 'Teilen' : 'Herunterladen';
+        send.disabled = false;
+      } catch {
+        if (mine !== request) return;
+        hint.textContent = 'Die Datei konnte nicht erstellt werden. Bitte noch einmal versuchen.';
+        send.textContent = 'Teilen';
+      }
+    }
+    boxes.forEach((b) => b.input.addEventListener('change', () => void update()));
+
+    const close = showDialog(dialog, () => done());
+    function done(): void {
+      request++;
+      close();
+      resolve();
+    }
+    cancel.addEventListener('click', () => done());
+    send.addEventListener('click', () => {
+      if (!file) return;
+      const ready = file;
+      void options.deliver(ready).finally(done);
+    });
+    void update();
+  });
+}

@@ -1,4 +1,15 @@
-import { BarlineType, Beam, Formatter, Fraction, Renderer, Stave, StaveNote, Voice } from 'vexflow/bravura';
+import {
+  BarlineType,
+  Beam,
+  CanvasContext,
+  Formatter,
+  Fraction,
+  Renderer,
+  Stave,
+  StaveNote,
+  Voice,
+  type RenderContext,
+} from 'vexflow/bravura';
 import { isMeasureFull } from '../model/check';
 import { measureLength, placeEvents } from '../model/measure';
 import { germanNoteName } from '../model/noteName';
@@ -46,8 +57,8 @@ function toStaveNote(event: ScoreEvent, staff: Staff, wholeMeasure: boolean): St
     const rest = new StaveNote({ keys: [key], duration: durationCode(event.ticks) + 'r', clef: staff.clef });
     if (wholeMeasure) rest.setCenterAlignment(true);
     // Gaps (automatic rests) are not shown: they keep their space, but stay empty.
-    // Written as an inline style, so it also holds when the SVG is copied (PDF).
-    if (event.auto) rest.setStyle({ fillStyle: 'none', strokeStyle: 'none' });
+    // Written into the drawing itself, so it also holds when drawn for the PDF.
+    if (event.auto) rest.setStyle({ fillStyle: 'transparent', strokeStyle: 'transparent' });
     return rest;
   }
   const { step, octave } = event.pitch;
@@ -78,6 +89,14 @@ function headerWidth(clef: string, timeSignature: string): number {
 const same = (a: Position | null, staff: number, measure: number, tick: number) =>
   a !== null && a.staff === staff && a.measure === measure && a.tick === tick;
 
+/** Where a measure was drawn and whether it is full (for the measure check below it). */
+interface MeasureBox {
+  left: number;
+  right: number;
+  full: boolean;
+}
+
+/** Draws the score on the screen (SVG) with the measure check below it. */
 export function renderScore(container: HTMLElement, score: Score, options: RenderOptions): ScoreLayout {
   container.innerHTML = '';
   const drawing = document.createElement('div');
@@ -99,6 +118,54 @@ export function renderScore(container: HTMLElement, score: Score, options: Rende
     svg.style.height = '';
   }
 
+  const { layout, boxes } = drawMusic(ctx, score, options);
+
+  // Measure check below each measure: a tick when full, otherwise an empty dashed circle.
+  for (const box of boxes) {
+    const cell = document.createElement('div');
+    cell.className = box.full ? 'status full' : 'status missing';
+    cell.style.left = `${(box.left / WIDTH) * 100}%`;
+    cell.style.width = `${((box.right - box.left) / WIDTH) * 100}%`;
+    cell.innerHTML = box.full
+      ? `<span class="status-mark" role="img" aria-label="voll">${TICK_ICON}</span>`
+      : `<span class="status-mark" role="img" aria-label="noch nicht voll"></span>`;
+    statusRow.append(cell);
+  }
+  return layout;
+}
+
+/**
+ * Draws only the music (no cursor, selection or measure check) on a canvas,
+ * `scale` times larger than on the screen. Used for the PDF.
+ */
+export function renderScoreToCanvas(score: Score, scale: number): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(WIDTH * scale);
+  canvas.height = Math.round(PRINT_HEIGHT * scale);
+  const context2d = canvas.getContext('2d')!;
+  context2d.fillStyle = '#ffffff';
+  context2d.fillRect(0, 0, canvas.width, canvas.height);
+  context2d.fillStyle = '#000000'; // VexFlow draws with the current colour
+  context2d.strokeStyle = '#000000';
+  context2d.scale(scale, scale);
+  drawMusic(new CanvasContext(context2d), score, {
+    showNoteNames: false,
+    cursor: null,
+    selection: null,
+    preview: null,
+    playing: null,
+  });
+  return canvas;
+}
+
+/** Height of the printed music: staff with some room for low notes, no note names. */
+const PRINT_HEIGHT = 140;
+
+function drawMusic(
+  ctx: RenderContext,
+  score: Score,
+  options: RenderOptions,
+): { layout: ScoreLayout; boxes: MeasureBox[] } {
   const staffIndex = 0;
   const staff = score.staves[staffIndex];
   const { beats, beatValue } = score.timeSignature;
@@ -109,6 +176,7 @@ export function renderScore(container: HTMLElement, score: Score, options: Rende
   const baseWidth = (WIDTH - 2 * MARGIN - extra) / count;
 
   const layout: ScoreLayout = { topLineY: 0, lineSpacing: 10, measures: [] };
+  const boxes: MeasureBox[] = [];
   let x = MARGIN;
   staff.measures.forEach((measure, i) => {
     const width = baseWidth + (i === 0 ? extra : 0);
@@ -178,19 +246,8 @@ export function renderScore(container: HTMLElement, score: Score, options: Rende
       ctx.closeGroup();
     }
 
-    // Measure check below the measure: a tick when full, otherwise an empty dashed circle.
-    const full = isMeasureFull(measure);
-    const left = i === 0 ? stave.getNoteStartX() : x;
-    const cell = document.createElement('div');
-    cell.className = full ? 'status full' : 'status missing';
-    cell.style.left = `${(left / WIDTH) * 100}%`;
-    cell.style.width = `${((x + width - left) / WIDTH) * 100}%`;
-    cell.innerHTML = full
-      ? `<span class="status-mark" role="img" aria-label="voll">${TICK_ICON}</span>`
-      : `<span class="status-mark" role="img" aria-label="noch nicht voll"></span>`;
-    statusRow.append(cell);
-
+    boxes.push({ left: i === 0 ? stave.getNoteStartX() : x, right: x + width, full: isMeasureFull(measure) });
     x += width;
   });
-  return layout;
+  return { layout, boxes };
 }

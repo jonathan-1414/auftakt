@@ -49,9 +49,12 @@ body {
   width: 44px;
   padding: 0;
 }
-.tool.icon .icon-glyph {
-  font-size: 24px;
-  line-height: 1;
+.tool.icon svg {
+  display: block;
+}
+/* Hand in: a stronger border, so it is easy to find without a label. */
+.tool.icon.strong {
+  border: 2px solid var(--text);
 }
 
 .tool-group {
@@ -307,4 +310,22 @@ body {
 
 [hidden] {
   display: none !important;
+}
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  font-weight: 400 !important;
+}
+.check-row input {
+  width: 24px;
+  height: 24px;
+  min-height: 0;
+  margin: 0;
+  accent-color: var(--accent);
+}
+.file-name {
+  color: var(--text);
+  overflow-wrap: anywhere;
 }

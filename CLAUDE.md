@@ -32,7 +32,7 @@ von Anfang an dazu passen. Diese Funktionen werden noch **nicht** gebaut.
 | Notendarstellung | VexFlow 5 (SVG-Ausgabe) |
 | Wiedergabe | Tone.js mit `Tone.Sampler` |
 | Klänge | Klavier-Samples aus *tonejs-instruments* (nbrosowsky), nur die benötigten MP3-Dateien nach `public/samples/piano/` kopieren. Lizenz CC BY 3.0 → Namensnennung auf einer Info-Seite |
-| PDF | jsPDF + svg2pdf.js (das VexFlow-SVG wird übernommen) |
+| PDF | jsPDF; das Notenbild wird mit VexFlow auf ein Canvas gezeichnet und als Bild (~300 dpi) eingebettet. svg2pdf.js entfällt, weil es die Notenschrift Bravura (nur WOFF2) nicht einbetten kann |
 | ZIP | fflate |
 | Teilen | Web Share API mit Dateien (`navigator.share({ files })`), Rückfall: Download |
 | Tests | Vitest |
@@ -74,8 +74,9 @@ Teil des Bildschirms ein, alles andere tritt zurück.
 - **Formen:** abgerundete Ecken, keine Schatten, keine Verläufe, keine Animationen außer der
   mitlaufenden Markierung und dem Zeitbalken im Button „Notennamen“. Symbole in Leisten
   immer mit kurzer Beschriftung („Halbe“, „Abspielen“), damit niemand raten muss.
-  Ausnahme: die selten gebrauchten Buttons „Neu“ (+) und „Angaben“ (ⓘ) zeigen nur das
-  Symbol und stehen immer ganz oben rechts (Name als Tooltip und für Screenreader).
+  Ausnahme: die Buttons „Neu“ (+), „Angaben“ (ⓘ) und „Abgeben“ (Teilen-Symbol, mit
+  kräftigerem Rand) zeigen nur ein gezeichnetes SVG-Symbol und stehen immer ganz oben
+  rechts (Name als Tooltip und für Screenreader).
 - Kein dunkler Modus in Modul 1.
 
 ## 3. Architektur
@@ -240,17 +241,20 @@ const modul1: ModuleConfig = {
 - Automatisches Speichern im Browser nach jeder Änderung, beim Öffnen wird der letzte
   Stand geladen (eigener Speicherplatz pro Modul). Gespeicherte Daten werden vor dem Laden
   geprüft; ungültige werden ignoriert. Ohne `localStorage` läuft die App ohne Speichern.
-- Button **Abgeben**: Auswahl der Formate **Auftakt-Datei** und **PDF** (beide vorausgewählt).
+- Button **Abgeben** (Teilen-Symbol oben rechts): Auswahl der Formate **Auftakt-Datei** und
+  **PDF** (beide vorausgewählt). Kein Warnhinweis bei nicht vollen Takten.
   - Dateiname: `[klasse]_[name(n)]_[jjjj-mm-tt]`, z. B. `7a_Mia-Ben_2026-11-11.pdf`.
   - Klasse und Namen kommen aus `meta`, das Datum ist der Tag der Abgabe.
   - Mehrere Namen mit `-` verbinden. Leerzeichen innerhalb eines Namens entfallen
     („Anna Lena“ → „AnnaLena“). ä → ae, ö → oe, ü → ue, ß → ss, Großbuchstaben ebenso.
-    Alle anderen Sonderzeichen entfallen.
+    Akzente werden weggelassen (é → e), alle anderen Sonderzeichen entfallen.
   - Ein Format gewählt → diese Datei. Beide gewählt → eine ZIP-Datei mit gleichem
     Namensschema (`7a_Mia-Ben_2026-11-11.zip`).
-  - Weitergabe über das Teilen-Menü des Geräts (AirDrop usw.), sonst Download.
-- Das PDF enthält oben Titel, Name(n), Klasse und Datum, darunter das Notenbild (ohne
-  Takt-Prüfung).
+  - Weitergabe über das Teilen-Menü des Geräts (AirDrop usw.), sonst Download. Die Datei
+    wird schon beim Öffnen des Dialogs vorbereitet, weil Browser das Teilen-Menü nur direkt
+    nach einem Tippen erlauben.
+- Das PDF (A4 quer) enthält oben Titel, Name(n), Klasse und Datum, darunter das Notenbild
+  (ohne Cursor und Takt-Prüfung).
 
 **Sonstiges**
 - Info-Seite mit Lizenzhinweisen (Samples CC BY 3.0, verwendete Bibliotheken).

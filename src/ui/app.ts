@@ -13,7 +13,10 @@ import { renderScore } from '../render/renderScore';
 import { createPlayer } from '../playback/player';
 import { buildSchedule } from '../playback/schedule';
 import { loadScore, saveScore } from '../storage/autosave';
-import { askForMeta, confirm } from './dialogs';
+import { baseFileName } from '../export/filename';
+import { buildHandIn } from '../export/handIn';
+import { canShareFile, shareOrDownload } from '../export/share';
+import { askForMeta, askHandIn, confirm } from './dialogs';
 import { createTimedReveal } from './timedReveal';
 import { createToolbar } from './toolbar';
 
@@ -127,6 +130,18 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
     },
     editDetails() {
       void askForDetails('edit');
+    },
+    handIn() {
+      player.stop();
+      const date = new Date(); // the day of handing in
+      const handedIn = score;
+      void askHandIn({
+        fileName: (formats) =>
+          `${baseFileName(handedIn.meta, date)}.${formats.length > 1 ? 'zip' : formats[0]}`,
+        prepare: (formats) => buildHandIn(handedIn, formats, date),
+        canShare: canShareFile,
+        deliver: shareOrDownload,
+      });
     },
     showNoteNames() {
       noteNames.start();

@@ -1,4 +1,5 @@
 import { DURATION_NAMES } from '../model/constants';
+import { ICONS } from './icons';
 import type { RevealPhase } from './timedReveal';
 
 /** Music font symbols (SMuFL code points in Bravura) for the note value buttons. */
@@ -30,6 +31,7 @@ export interface ToolbarActions {
   showNoteNames(): void;
   newScore(): void;
   editDetails(): void;
+  handIn(): void;
 }
 
 function button(label: string, onClick: () => void, glyph?: string): HTMLButtonElement {
@@ -51,17 +53,13 @@ function button(label: string, onClick: () => void, glyph?: string): HTMLButtonE
 }
 
 /** A button that shows only a symbol; the name is given for screen readers and as a tooltip. */
-function iconButton(name: string, glyph: string, onClick: () => void): HTMLButtonElement {
+function iconButton(name: string, icon: string, onClick: () => void): HTMLButtonElement {
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'tool icon';
   b.setAttribute('aria-label', name);
   b.title = name;
-  const symbol = document.createElement('span');
-  symbol.className = 'icon-glyph';
-  symbol.setAttribute('aria-hidden', 'true');
-  symbol.textContent = glyph;
-  b.append(symbol);
+  b.innerHTML = icon; // our own SVG (see icons.ts), not user input
   b.addEventListener('click', onClick);
   return b;
 }
@@ -102,10 +100,17 @@ export function createToolbar(
   namesButton.prepend(namesBar);
   actionGroup.append(undoButton, deleteButton, namesButton);
 
-  // "New" and "Details" are used rarely: symbols only, always in the top right corner.
+  // New, details and hand in: symbols only, always in the top right corner.
+  // Hand in is the important one at the end of a lesson: it gets a stronger border.
   const scoreGroup = document.createElement('div');
   scoreGroup.className = 'tool-group corner';
-  scoreGroup.append(iconButton('Neue Partitur', '+', actions.newScore), iconButton('Angaben ändern', 'ⓘ', actions.editDetails));
+  const handInButton = iconButton('Abgeben', ICONS.share, actions.handIn);
+  handInButton.classList.add('strong');
+  scoreGroup.append(
+    iconButton('Neue Partitur', ICONS.plus, actions.newScore),
+    iconButton('Angaben ändern', ICONS.info, actions.editDetails),
+    handInButton,
+  );
 
   // The main groups wrap onto more lines if needed; the corner group stays at the top right.
   const main = document.createElement('div');
