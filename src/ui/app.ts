@@ -16,7 +16,7 @@ import { loadScore, saveScore } from '../storage/autosave';
 import { baseFileName } from '../export/filename';
 import { buildHandIn } from '../export/handIn';
 import { canShareFile, shareOrDownload } from '../export/share';
-import { askForMeta, askHandIn, confirm } from './dialogs';
+import { askForMeta, askHandIn, confirm, showInfo } from './dialogs';
 import { createTimedReveal } from './timedReveal';
 import { createToolbar } from './toolbar';
 
@@ -37,7 +37,9 @@ export function startApp(root: HTMLElement, module: ModuleConfig): void {
   root.innerHTML = `
     <header class="toolbar"></header>
     <main class="score-area"><div id="score"></div></main>
+    <footer class="app-footer"><button type="button" class="link-button">Info und Lizenzen</button></footer>
   `;
+  root.querySelector('.app-footer button')!.addEventListener('click', showInfo);
   const scoreElement = root.querySelector<HTMLDivElement>('#score')!;
 
   // The last state is loaded from the browser; every change is saved right away.

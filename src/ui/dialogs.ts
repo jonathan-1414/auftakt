@@ -236,3 +236,62 @@ export function askHandIn(options: {
     void update();
   });
 }
+
+/** A link that opens in a new tab, so the score stays open. */
+function externalLink(text: string, href: string): HTMLAnchorElement {
+  return el('a', { href, textContent: text, target: '_blank', rel: 'noopener noreferrer' });
+}
+
+/** One entry of the info dialog: what it is, who made it, which license. */
+function credit(name: string, href: string, ...details: (Node | string)[]): HTMLLIElement {
+  return el('li', {}, externalLink(name, href), ...details);
+}
+
+/** Info and licenses: what Auftakt uses and under which terms. */
+export function showInfo(): void {
+  const dialog = el('dialog', { className: 'dialog info' });
+  const ok = textButton('Schließen', 'tool primary');
+  dialog.append(
+    el('h2', { textContent: 'Info und Lizenzen' }),
+    el(
+      'p',
+      { className: 'dialog-text' },
+      'Auftakt ist ein kleines Notensatzprogramm für den Musikunterricht. Alle Daten bleiben auf diesem Gerät, es gibt keinen Server und keine Anmeldung. Der ',
+      externalLink('Quellcode', 'https://github.com/jonathan-1414/auftakt'),
+      ' steht unter der Lizenz GNU AGPL 3.0.',
+    ),
+    el('h3', { textContent: 'Klang' }),
+    el(
+      'ul',
+      {},
+      credit(
+        'Klavier-Samples aus tonejs-instruments',
+        'https://github.com/nbrosowsky/tonejs-instruments',
+        ' von Nicholaus P. Brosowsky, Aufnahmen: Versilian Studios (VSO2). Lizenz: ',
+        externalLink('CC BY 3.0', 'https://creativecommons.org/licenses/by/3.0/deed.de'),
+        '. Unverändert verwendet.',
+      ),
+    ),
+    el('h3', { textContent: 'Schriften' }),
+    el(
+      'ul',
+      {},
+      credit('Nunito', 'https://github.com/googlefonts/nunito', ' von The Nunito Project Authors, SIL Open Font License 1.1'),
+      credit('Bravura', 'https://github.com/steinbergmedia/bravura', ' (Notenzeichen) von Steinberg Media Technologies, SIL Open Font License 1.1'),
+      credit('Academico', 'https://github.com/vexflow/vexflow-fonts', ' (Text im Notenbild) von Steinberg Media Technologies, SIL Open Font License 1.1'),
+    ),
+    el('h3', { textContent: 'Bibliotheken' }),
+    el(
+      'ul',
+      {},
+      credit('VexFlow', 'https://github.com/vexflow/vexflow', ' (Notenbild), MIT-Lizenz'),
+      credit('Tone.js', 'https://github.com/Tonejs/Tone.js', ' (Wiedergabe), MIT-Lizenz'),
+      credit('jsPDF', 'https://github.com/parallax/jsPDF', ' (PDF), MIT-Lizenz'),
+      credit('fflate', 'https://github.com/101arrowz/fflate', ' (ZIP), MIT-Lizenz'),
+    ),
+    el('div', { className: 'dialog-actions' }, ok),
+  );
+  const close = showDialog(dialog, () => close());
+  ok.addEventListener('click', () => close());
+  dialog.focus();
+}

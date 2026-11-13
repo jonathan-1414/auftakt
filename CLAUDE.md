@@ -257,7 +257,8 @@ const modul1: ModuleConfig = {
   (ohne Cursor und Takt-Prüfung).
 
 **Sonstiges**
-- Info-Seite mit Lizenzhinweisen (Samples CC BY 3.0, verwendete Bibliotheken).
+- Info-Seite mit Lizenzhinweisen (Samples CC BY 3.0, Schriften, verwendete Bibliotheken):
+  unauffälliger Link „Info und Lizenzen“ unten rechts, öffnet ein Fenster über der Partitur.
 - Läuft als WebApp im Browser (Safari auf dem iPad, dazu Chrome und Firefox am Rechner).
   Eine PWA ist erst für Modul 2 vorgesehen, aber nichts verbauen, was das verhindert.
 
