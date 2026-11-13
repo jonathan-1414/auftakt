@@ -232,6 +232,10 @@ body {
   padding: 0;
   font-weight: 600;
 }
+/* A legend is not part of the flex layout of its fieldset, so it needs its own spacing. */
+.dialog legend {
+  margin-bottom: 6px;
+}
 .dialog input {
   min-height: 44px;
   box-sizing: border-box;
